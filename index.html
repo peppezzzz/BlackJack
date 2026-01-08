@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Blackjack Oracle GOLD v4.3</title>
+    <title>Blackjack Oracle ELITE v4.4</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
@@ -17,16 +17,24 @@
         .tab-btn.active { color: var(--primary); }
         .section { flex: 1; display: none; padding: 15px; overflow-y: auto; margin-bottom: 75px; }
         .section.active { display: block; }
+        
+        .target-header { display: flex; gap: 8px; margin-bottom: 12px; }
         .target-box { flex: 1; background: #0f0f0f; border: 2px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; transition: 0.2s; }
         .target-box.active { border-color: var(--primary); box-shadow: 0 0 20px var(--primary-glow); }
-        .target-box.split-active { border-color: var(--action); box-shadow: 0 0 20px rgba(0,212,255,0.4); }
-        .sum { font-size: 28px; font-weight: 900; }
-        .strat-banner { background: #111; border: 2px solid var(--primary); border-radius: 12px; padding: 15px; text-align: center; font-size: 22px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; }
-        .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px; }
-        .key { height: 55px; border: none; border-radius: 10px; color: white; font-size: 24px; font-weight: 900; }
+        .target-box.split-active { border-color: var(--action); box-shadow: 0 0 15px rgba(0,212,255,0.4); }
+        .sum { font-size: 26px; font-weight: 900; }
+
+        .strat-banner { background: #111; border: 2px solid var(--primary); border-radius: 12px; padding: 15px; text-align: center; font-size: 22px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; min-height: 30px; }
+
+        .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; }
+        .key { height: 55px; border: none; border-radius: 8px; color: white; font-size: 24px; font-weight: 900; }
         .k-high { background: #8a1c1c; } .k-low { background: #0f5c37; } .k-mid { background: #3e413e; }
+
         .glass-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 12px; margin-bottom: 10px; }
         .f-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1a1a1a; font-size: 14px; }
+        .side-btn { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: #fff; font-weight: bold; margin-bottom: 12px; text-align: center; font-size: 10px; }
+        .side-btn.active { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+
         .btn-main { background: var(--primary); border: none; border-radius: 12px; padding: 18px; color: white; font-weight: 900; width: 100%; font-size: 16px; box-shadow: 0 0 20px var(--primary-glow); }
         #config-sec { background: #000; position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; justify-content: center; padding: 30px; }
         .config-input { background: #111; border: 1px solid var(--border); border-radius: 10px; padding: 15px; color: white; width: 100%; margin: 10px 0; font-size: 18px; box-sizing: border-box; }
@@ -35,24 +43,30 @@
 <body>
 
     <div id="config-sec">
-        <h1 style="color:var(--primary); text-align:center;">ORACLE GOLD v4.3</h1>
+        <h1 style="color:var(--primary); text-align:center;">ORACLE ELITE</h1>
         <label style="color:#888; font-size:12px;">BANKROLL (€)</label><input type="number" id="cfg-bank" class="config-input" value="1000">
         <label style="color:#888; font-size:12px;">MAZZI (8)</label><input type="number" id="cfg-decks" class="config-input" value="8">
+        <label style="color:#888; font-size:12px;">PENETRAZIONE (%)</label><input type="number" id="cfg-pen" class="config-input" value="50">
         <button class="btn-main" onclick="initApp()">ATTIVA SISTEMA</button>
     </div>
 
     <div id="game-sec" class="section">
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
-            <div id="box-p1" class="target-box active" onclick="setT('p1')"><div style="color:#888; font-size:9px;">MANO A</div><div id="sum-p1" class="sum">0</div></div>
-            <div id="box-p2" class="target-box" style="display:none" onclick="setT('p2')"><div style="color:#888; font-size:9px;">MANO B</div><div id="sum-p2" class="sum">0</div></div>
+        <div class="target-header">
+            <div id="box-p1" class="target-box active" onclick="setT('p1')"><div style="color:#888; font-size:9px;">TU A</div><div id="sum-p1" class="sum">0</div></div>
+            <div id="box-p2" class="target-box" style="display:none" onclick="setT('p2')"><div style="color:#888; font-size:9px;">TU B</div><div id="sum-p2" class="sum">0</div></div>
             <div id="box-d" class="target-box" onclick="setT('d')"><div style="color:#888; font-size:9px;">BANCO</div><div id="sum-d" class="sum">0</div></div>
         </div>
 
         <div id="strat-box" class="strat-banner">READY</div>
 
         <div class="glass-card" style="display: flex; gap: 10px; text-align: center; padding: 8px;">
-            <div style="flex:1"><div style="color:#888; font-size:9px;">% 10</div><div id="p10-txt" style="color:var(--action); font-weight:bold;">30.7%</div></div>
-            <div style="flex:1"><div style="color:#888; font-size:9px;">% ASSE</div><div id="pa-txt" style="color:var(--win); font-weight:bold;">7.7%</div></div>
+            <div style="flex:1"><div style="color:#888; font-size:9px;">PROB 10</div><div id="p10-txt" style="color:var(--action); font-weight:bold; font-size:18px;">30.7%</div></div>
+            <div style="flex:1"><div style="color:#888; font-size:9px;">PROB ASSE</div><div id="pa-txt" style="color:var(--win); font-weight:bold; font-size:18px;">7.7%</div></div>
+        </div>
+
+        <div style="display:flex; gap:6px;">
+            <div id="btn-ins" class="side-btn">ASSICURAZIONE</div>
+            <div id="btn-side" class="side-btn" onclick="nav('sidebets-sec', null)">SIDE BETS SISAL</div>
         </div>
 
         <div class="keypad">
@@ -68,13 +82,13 @@
             <button class="key k-high" onclick="hit(10)">10</button>
         </div>
 
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:6px;">
             <button id="split-btn" class="act-btn" style="flex:1; background:#001a33; border:1px solid var(--action); color:var(--action); border-radius:10px; display:none; font-weight:bold;" onclick="doSplit()">SPLIT</button>
             <button class="btn-main" style="flex:2; margin-top:0;" onclick="resolve()">FINE MANO</button>
         </div>
         <button onclick="undo()" style="background:none; border:none; color:#ff8c00; width:100%; margin-top:10px; font-weight:bold; font-size:11px; text-transform:uppercase;">Undo Ultima Carta</button>
 
-        <div class="glass-card" style="display:grid; grid-template-columns: repeat(4, 1fr); margin-top:12px; text-align:center; padding:10px;">
+        <div class="glass-card" style="display:grid; grid-template-columns: repeat(4, 1fr); margin-top:10px; text-align:center; padding:10px;">
             <div><div style="color:#888; font-size:9px;">RC</div><div id="ui-rc" style="color:var(--primary)">0</div></div>
             <div><div style="color:#888; font-size:9px;">TC</div><div id="ui-tc" style="color:var(--primary)">0.0</div></div>
             <div><div style="color:#888; font-size:9px;">BET</div><div id="ui-bet" style="color:var(--win)">1€</div></div>
@@ -83,22 +97,30 @@
     </div>
 
     <div id="fin-sec" class="section">
-        <h2 style="color:var(--primary)">FINANZE</h2>
+        <h3 style="color:var(--primary)">STATISTICHE LIVE</h3>
         <div class="glass-card">
             <div class="f-row"><span>Mani Giocate</span><span id="ui-h">0</span></div>
             <div class="f-row"><span>Vinte</span><span id="ui-w" style="color:var(--win)">0</span></div>
             <div class="f-row"><span>Perse</span><span id="ui-l" style="color:var(--lose)">0</span></div>
         </div>
+        <h3 style="color:var(--primary)">FINANZE</h3>
         <div class="glass-card">
-            <div class="f-row"><span>Bankroll</span><span id="ui-bal" style="color:var(--win); font-weight:bold;">1000€</span></div>
+            <div class="f-row"><span>Bankroll Iniziale</span><span id="ui-start">1000€</span></div>
+            <div class="f-row"><span>Saldo Attuale</span><span id="ui-bal" style="color:var(--win); font-weight:bold;">1000€</span></div>
             <div class="f-row"><span>ROI %</span><span id="ui-roi">0.0%</span></div>
         </div>
         <div id="history-list"></div>
     </div>
 
-    <div class="tabs" id="nav-bar" style="display:none;">
-        <button class="tab-btn" onclick="nav('fin-sec', this)"><i data-lucide="dollar-sign"></i>Finanze</button>
-        <button class="tab-btn active" onclick="nav('game-sec', this)"><i data-lucide="activity"></i>Oracle</button>
+    <div id="sidebets-sec" class="section">
+        <h3 style="color:var(--primary); text-align:center;">SIDE BETS</h3>
+        <div id="sb-msg" style="background:var(--panel); padding:20px; border-radius:12px; text-align:center;">Attendere...</div>
+        <button class="act-btn" style="width:100%; margin-top:20px; background:var(--panel); color:white; border:1px solid var(--border); border-radius:10px; padding:15px;" onclick="nav('game-sec', document.getElementById('t-game'))">TORNA</button>
+    </div>
+
+    <div class="tabs hidden" id="navbar">
+        <button id="t-fin" class="tab-btn" onclick="nav('fin-sec', this)"><i data-lucide="dollar-sign"></i>Finanze</button>
+        <button id="t-game" class="tab-btn active" onclick="nav('game-sec', this)"><i data-lucide="activity"></i>Oracle</button>
         <button class="tab-btn" onclick="fullReset()"><i data-lucide="settings"></i>Reset</button>
     </div>
 
@@ -107,20 +129,20 @@
         function playTone(freq, type, dur) {
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + dur);
         }
 
-        let s = { bank:1000, start:1000, decks:8, rc:0, dealt:0, c10:0, cA:0, p1:[], p2:[], d:[], target:'p1', isSplit:false, stats:{h:0,w:0,l:0,p:0}, hist:[], log:[] };
+        let s = { bank:1000, start:1000, decks:8, pen:50, rc:0, dealt:0, c10:0, cA:0, p1:[], p2:[], d:[], target:'p1', isSplit:false, stats:{h:0,w:0,l:0,p:0}, hist:[], log:[] };
         const TAGS = { 11:-1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:0, 8:0, 9:0, 10:-1 };
 
         function initApp() {
             s.start = parseFloat(document.getElementById('cfg-bank').value);
             s.bank = s.start; s.decks = parseInt(document.getElementById('cfg-decks').value);
             document.getElementById('config-sec').style.display = 'none';
-            document.getElementById('nav-bar').style.display = 'flex';
+            document.getElementById('navbar').classList.remove('hidden');
             if (audioCtx.state === 'suspended') audioCtx.resume();
             playTone(880, 'sine', 0.2); update();
         }
@@ -130,10 +152,9 @@
             s.rc += TAGS[v]; s.dealt++; s.log.push({ v, t: s.target });
             s[s.target].push(v);
             if (v === 10) s.c10++; if (v === 11) s.cA++;
-            // Auto-switch assistito
             if (!s.isSplit && s.p1.length === 1 && s.d.length === 0) s.target = 'd';
             else if (!s.isSplit && s.p1.length === 1 && s.d.length === 1) s.target = 'p1';
-            update();
+            update(); save();
         }
 
         function getSum(h) {
@@ -147,20 +168,22 @@
         function resolve() {
             let tc = s.rc / Math.max(1, (s.decks * 52 - s.dealt) / 52);
             let bet = (tc < 1) ? 1 : (tc < 2) ? 2 : (tc < 3) ? 5 : (tc < 4.5) ? 8 : 12;
-            let ds = getSum(s.d);
+            let ds = getSum(s.d), banner = document.getElementById('strat-box');
             let hands = [s.p1]; if(s.isSplit) hands.push(s.p2);
 
             hands.forEach((h, idx) => {
-                let ps = getSum(h), res = "", gain = 0; s.stats.h++;
-                if (ps > 21) { res = "SBALLATO"; gain = -bet; s.stats.l++; playTone(200, 'sawtooth', 0.3); }
-                else if (ds > 21 || ps > ds) { res = "VINTO"; gain = (ps===21 && h.length===2)?bet*1.5:bet; s.stats.w++; playTone(1200, 'sine', 0.2); }
-                else if (ps < ds) { res = "PERSO"; gain = -bet; s.stats.l++; }
-                else { res = "PARI"; gain = 0; s.stats.p++; }
+                let ps = getSum(h), res = "", gain = 0, col = ""; s.stats.h++;
+                if (ps > 21) { res = "SBALLATO"; gain = -bet; col = "var(--lose)"; s.stats.l++; playTone(200, 'sawtooth', 0.3); }
+                else if (ds > 21) { res = "BANCO SBALLA"; gain = bet; col = "var(--win)"; s.stats.w++; playTone(1200, 'sine', 0.3); }
+                else if (ps === 21 && h.length === 2) { res = "BLACKJACK!"; gain = bet * 1.5; col = "var(--win)"; s.stats.w++; playTone(1500, 'sine', 0.4); }
+                else if (ps > ds) { res = "HAI VINTO"; gain = bet; col = "var(--win)"; s.stats.w++; playTone(1000, 'sine', 0.2); }
+                else if (ps < ds) { res = "HAI PERSO"; gain = -bet; col = "var(--lose)"; s.stats.l++; playTone(300, 'sine', 0.3); }
+                else { res = "PAREGGIO"; gain = 0; col = "#888"; s.stats.p++; }
                 s.bank += gain;
-                s.hist.unshift({ m: (s.isSplit ? (idx===0?'A: ':'B: ') : '') + res, v: gain.toFixed(1) + "€", c: gain > 0 ? 'var(--win)' : 'var(--lose)' });
+                s.hist.unshift({ m: (s.isSplit ? (idx===0?'A: ':'B: ') : '') + res, v: gain.toFixed(1) + "€", c: col });
+                banner.innerText = res; banner.style.color = col; banner.style.borderColor = col;
             });
 
-            document.getElementById('strat-box').innerText = "MANO CONCLUSA";
             setTimeout(() => { s.p1 = []; s.p2 = []; s.d = []; s.target = 'p1'; s.isSplit = false; update(); }, 2000);
             save();
         }
@@ -186,32 +209,36 @@
             else if (ps > 21) { banner.innerText = "SBALLATO"; banner.style.color = "var(--lose)"; }
             else if (ps >= 17) { banner.innerText = "STAI"; banner.style.color = "var(--lose)"; }
             else if (ps > 0 && dv > 0) {
-                if (isPair && !s.isSplit) { banner.innerText = "SPLIT?"; banner.style.color = "var(--action)"; }
+                if (isPair && !s.isSplit) { banner.innerText = "DIVIDI"; banner.style.color = "var(--action)"; }
                 else { banner.innerText = (dv <= 6 && ps >= 13) ? "STAI" : "CHIAMA"; banner.style.color = (dv <= 6 && ps >= 13) ? "var(--lose)" : "var(--win)"; }
             } else { banner.innerText = "READY"; banner.style.color = "var(--primary)"; }
 
+            // UI UPDATES
             document.getElementById('split-btn').style.display = (!s.isSplit && isPair) ? 'block' : 'none';
             document.getElementById('box-p2').style.display = s.isSplit ? 'block' : 'none';
             document.getElementById('box-p1').className = "target-box " + (s.target === 'p1' ? 'active' : '');
-            document.getElementById('box-p2').className = "target-box " + (s.target === 'p2' ? 'active' : '');
+            document.getElementById('box-p2').className = "target-box " + (s.target === 'p2' ? (s.target==='p2'?'active':'') : '');
             document.getElementById('box-d').className = "target-box " + (s.target === 'd' ? 'active' : '');
+            
+            document.getElementById('btn-ins').className = (dv === 11 && tc >= 3) ? "side-btn active" : "side-btn";
+            document.getElementById('btn-side').className = (tc >= 5) ? "side-btn active" : "side-btn";
+            if(tc >= 5) { document.getElementById('sb-msg').innerText = "Punta: Hot 3, 21+3, Bust It"; playTone(600, 'sine', 0.1); }
+            else document.getElementById('sb-msg').innerText = "Attendi TC +5";
 
-            // Finanze Update
             document.getElementById('ui-bal').innerText = Math.round(s.bank) + "€";
             document.getElementById('ui-roi').innerText = (((s.bank - s.start) / s.start) * 100).toFixed(1) + "%";
             document.getElementById('ui-h').innerText = s.stats.h;
             document.getElementById('ui-w').innerText = s.stats.w;
             document.getElementById('ui-l').innerText = s.stats.l;
-
-            let hHtml = ""; s.hist.slice(0, 10).forEach(i => { hHtml += `<div class="f-row"><span>${i.m}</span><span style="color:${i.c}">${i.v}</span></div>`; });
-            document.getElementById('history-list').innerHTML = hHtml;
+            document.getElementById('history-list').innerHTML = s.hist.slice(0, 10).map(i => `<div class="f-row"><span>${i.m}</span><span style="color:${i.c}">${i.v}</span></div>`).join('');
+            lucide.createIcons();
         }
 
         function setT(t) { playTone(600, 'sine', 0.05); s.target = t; update(); }
         function undo() { if (s.log.length) { let l = s.log.pop(); s[l.t].pop(); s.rc -= TAGS[l.v]; if (l.v === 10) s.c10--; if (l.v === 11) s.cA--; s.dealt--; update(); } }
-        function save() { localStorage.setItem('oracle_gold_v4.3', JSON.stringify(s)); }
-        function load() { let d = localStorage.getItem('oracle_gold_v4.3'); if (d) { s = JSON.parse(d); document.getElementById('config-sec').style.display = 'none'; document.getElementById('nav-bar').style.display = 'flex'; update(); } }
-        function nav(sec, btn) { document.querySelectorAll('.section').forEach(x => x.classList.remove('active')); document.getElementById(sec).classList.add('active'); document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active')); btn.classList.add('active'); lucide.createIcons(); }
+        function save() { localStorage.setItem('oracle_elite_v4.4', JSON.stringify(s)); }
+        function load() { let d = localStorage.getItem('oracle_elite_v4.4'); if (d) { s = JSON.parse(d); document.getElementById('config-sec').style.display = 'none'; document.getElementById('navbar').classList.remove('hidden'); update(); } }
+        function nav(sec, btn) { document.querySelectorAll('.section').forEach(x => x.classList.remove('active')); document.getElementById(sec).classList.add('active'); if(btn) { document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active')); btn.classList.add('active'); } lucide.createIcons(); }
         function fullReset() { if (confirm("RESET TOTALE?")) { localStorage.clear(); location.reload(); } }
         window.onload = () => { load(); lucide.createIcons(); };
     </script>
