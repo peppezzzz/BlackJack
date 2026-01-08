@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Blackjack Oracle v3.2</title>
+    <title>Blackjack Oracle v3.5</title>
     <style>
         :root {
             --primary: #bd00ff; --primary-glow: rgba(189, 0, 255, 0.5);
             --bg: #000; --panel: #0d0d0d; --border: #222;
-            --text: #fff; --win: #0f5; --lose: #f05;
+            --text: #fff; --win: #0f5; --lose: #f05; --action: #00d4ff;
         }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .tabs { display: flex; background: #050505; border-top: 1px solid var(--border); height: 60px; position: fixed; bottom: 0; width: 100%; z-index: 10; }
@@ -16,48 +16,50 @@
         .tab-btn.active { color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); }
         .section { flex: 1; display: none; padding: 15px; overflow-y: auto; margin-bottom: 60px; }
         .section.active { display: block; }
-        .config-input { width: 100%; padding: 10px; margin: 10px 0; background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 8px; box-sizing: border-box; }
+        .config-input { width: 100%; padding: 12px; margin: 10px 0; background: var(--panel); border: 1px solid var(--border); color: var(--text); border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .header { display: flex; gap: 8px; margin-bottom: 12px; }
         .target-box { flex: 1; background: var(--panel); border: 2px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; }
         .target-box.active { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
         .sum { font-size: 24px; font-weight: 900; }
-        .strat-box { background: var(--panel); border: 1px solid var(--primary); border-radius: 10px; padding: 12px; text-align: center; font-size: 20px; font-weight: 900; margin-bottom: 12px; color: var(--primary); }
+        .strat-box { background: var(--panel); border: 2px solid var(--primary); border-radius: 12px; padding: 15px; text-align: center; font-size: 20px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; }
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; }
-        .card-btn { height: 55px; border: none; border-radius: 8px; color: white; font-size: 22px; font-weight: 900; }
+        .card-btn { height: 60px; border: none; border-radius: 8px; color: white; font-size: 24px; font-weight: 900; }
         .btn-r { background: #8a1c1c; } .btn-g { background: #0f5c37; } .btn-gy { background: #3e413e; }
         .act-btn { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: #fff; font-weight: bold; }
-        .btn-reset { background: var(--primary); border: none; flex: 1.5; }
-        .stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; margin-bottom: 12px; }
-        .hist-row { font-size: 12px; padding: 10px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; }
+        .btn-reset { background: var(--primary); border: none; flex: 1.5; font-size: 14px; }
+        .stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; margin-bottom: 8px; }
         .table-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #111; }
-        .table-row span:last-child { font-weight: bold; color: var(--primary); }
-        .side-btn { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: #fff; font-weight: bold; margin-bottom: 12px; text-align: center; }
+        .side-btn { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: #fff; font-weight: bold; margin-bottom: 12px; text-align: center; font-size: 10px; }
         .side-btn.active { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
-        #config-sec { z-index: 20; background: var(--bg); margin-bottom: 0; }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <div id="config-sec" class="section active">
-        <h2 style="color:var(--primary); text-align:center;">CONFIGURAZIONE</h2>
-        <label>Bankroll Iniziale (€)</label>
-        <input type="number" id="cfg-bank" class="config-input" value="1000">
-        <label>Numero Mazzi</label>
-        <input type="number" id="cfg-decks" class="config-input" value="8">
-        <label>Penetrazione (%)</label>
-        <input type="number" id="cfg-pen" class="config-input" value="50">
-        <button class="act-btn btn-reset" style="width:100%; margin-top:20px;" onclick="startGame()">INIZIA GIOCO</button>
+        <h2 style="color:var(--primary); text-align:center; margin-top:40px;">ORACLE v3.5</h2>
+        <div style="background:var(--panel); padding:20px; border-radius:15px; border:1px solid var(--border);">
+            <label>Bankroll Iniziale (€)</label><input type="number" id="cfg-bank" class="config-input" value="1000">
+            <label>Numero Mazzi</label><input type="number" id="cfg-decks" class="config-input" value="8">
+            <label>Penetrazione (%)</label><input type="number" id="cfg-pen" class="config-input" value="50">
+            <button class="act-btn btn-reset" style="width:100%; margin-top:20px; padding:18px;" onclick="startGame()">AVVIA SESSIONE</button>
+        </div>
     </div>
 
     <div id="game-sec" class="section">
         <div class="header">
-            <div id="box-p1" class="target-box active" onclick="setT('p1')"><div>TU</div><div id="sum-p1" class="sum">0</div></div>
-            <div id="box-d" class="target-box" onclick="setT('d')"><div>BANCO</div><div id="sum-d" class="sum">0</div></div>
+            <div id="box-p1" class="target-box active" onclick="setT('p1')"><div style="font-size:9px">MANO A</div><div id="sum-p1" class="sum">0</div></div>
+            <div id="box-p2" class="target-box" style="display:none" onclick="setT('p2')"><div style="font-size:9px">MANO B</div><div id="sum-p2" class="sum">0</div></div>
+            <div id="box-d" class="target-box" onclick="setT('d')"><div style="font-size:9px">BANCO</div><div id="sum-d" class="sum">0</div></div>
         </div>
         <div id="strat" class="strat-box">INSERISCI CARTE</div>
+        
+        <div class="stat-card" style="grid-template-columns: repeat(2, 1fr); border-color: var(--primary);">
+            <div><div style="font-size:10px; color:var(--text-sec)">PROBABILITÀ 10</div><div id="prob-10" style="font-size:18px; font-weight:900; color:var(--action)">30.7%</div></div>
+            <div><div style="font-size:10px; color:var(--text-sec)">PROBABILITÀ ASSO</div><div id="prob-a" style="font-size:18px; font-weight:900; color:var(--win)">7.7%</div></div>
+        </div>
+
         <div style="display:flex; gap:6px;">
             <div id="btn-ins" class="side-btn">ASSICURAZIONE</div>
-            <div id="btn-side" class="side-btn" onclick="nav('sidebets-sec', null)">SIDE BETS</div>
+            <div id="btn-side" class="side-btn" onclick="nav('sidebets-sec', null)">SIDE BETS SISAL</div>
         </div>
         <div class="grid">
             <button class="card-btn btn-r" onclick="add(11)">A</button>
@@ -72,7 +74,8 @@
             <button class="card-btn btn-r" onclick="add(10)">10</button>
         </div>
         <div style="display:flex; gap:6px; margin-bottom:12px;">
-            <button class="act-btn" style="color:#ff8c00" onclick="undo()">UNDO</button>
+            <button class="act-btn" style="color:#ff8c00; font-size:10px;" onclick="undo()">UNDO</button>
+            <button id="split-btn" class="act-btn" style="color:var(--action); font-size:10px; display:none;" onclick="doSplit()">SPLIT</button>
             <button class="act-btn btn-reset" onclick="resolve()">FINE MANO</button>
         </div>
         <div class="stat-card">
@@ -84,104 +87,96 @@
     </div>
 
     <div id="fin-sec" class="section">
-        <div style="background:var(--panel); padding:15px; border-radius:12px; margin-bottom:15px;">
-            <div class="table-row"><span>Giocate</span><span id="f-hands">0</span></div>
-            <div class="table-row"><span>Vinte</span><span id="f-win" style="color:var(--win)">0</span></div>
-            <div class="table-row"><span>Perse</span><span id="f-lose" style="color:var(--lose)">0</span></div>
-            <div class="table-row"><span>Sballate</span><span id="f-bust" style="color:var(--lose)">0</span></div>
-            <div class="table-row"><span>Pareggiate</span><span id="f-push" style="color:#888">0</span></div>
-        </div>
         <h3 style="color:var(--primary)">FINANZE</h3>
-        <div style="background:var(--panel); padding:15px; border-radius:12px; margin-bottom:15px;">
-            <div class="table-row"><span>Bankroll Iniziale</span><span id="f-start">1000€</span></div>
-            <div class="table-row"><span>Profitto/Perdita</span><span id="f-prof">0€</span></div>
-            <div class="table-row"><span>Saldo Attuale</span><span id="f-bal" style="font-size:18px">1000€</span></div>
-            <div class="table-row"><span>Rendimento %</span><span id="f-roi">0.00%</span></div>
+        <div style="background:var(--panel); padding:15px; border-radius:12px;">
+            <div class="table-row"><span>Giocate</span><span id="f-h">0</span></div>
+            <div class="table-row"><span>Bankroll</span><span id="f-bal">1000€</span></div>
+            <div class="table-row"><span>ROI %</span><span id="f-roi">0.0%</span></div>
         </div>
-        <h3 style="color:var(--primary)">STORICO ULTIME MANI</h3>
         <div id="history-list"></div>
     </div>
 
     <div id="sidebets-sec" class="section">
-        <h3 style="color:var(--primary); text-align:center;">SIDE BETS INFINITE (SISAL)</h3>
-        <div style="background:var(--panel); padding:15px; border-radius:12px; text-align:center;">
-            <p>TC Attuale: <span id="sb-tc" style="color:var(--primary); font-weight:bold;">0.0</span></p>
-            <p id="sb-msg" style="font-size:18px; font-weight:bold;">Nessuna Side Bet consigliata.</p>
-            <div id="sb-list" style="text-align:left; margin-top:20px; display:none;">
-                <p>Consigliate (TC >= 5):</p>
-                <ul><li>Any Pair</li><li>21+3</li><li>Hot 3</li><li>Bust It</li></ul>
-            </div>
-             <button class="act-btn" style="width:100%; margin-top:20px;" onclick="nav('game-sec', document.getElementById('t-game'))">TORNA AL GIOCO</button>
-        </div>
-    </div>
-    
-    <div id="settings-sec" class="section">
-        <h3 style="color:var(--primary); text-align:center;">IMPOSTAZIONI</h3>
-        <button class="act-btn btn-reset" style="width:100%;" onclick="fullReset()">RESET COMPLETO</button>
+        <h3 style="color:var(--primary); text-align:center;">SIDE BETS</h3>
+        <div id="sb-msg" style="background:var(--panel); padding:20px; border-radius:12px; text-align:center;">Attendere...</div>
+        <button class="act-btn" style="width:100%; margin-top:20px;" onclick="nav('game-sec', document.getElementById('t-game'))">TORNA</button>
     </div>
 
     <div class="tabs hidden" id="navbar">
         <button id="t-fin" class="tab-btn" onclick="nav('fin-sec', this)">Finanze</button>
         <button id="t-game" class="tab-btn active" onclick="nav('game-sec', this)">Conteggio</button>
-        <button id="t-set" class="tab-btn" onclick="nav('settings-sec', this)">Impostazioni</button>
+        <button class="tab-btn" onclick="fullReset()">Reset</button>
     </div>
 
     <script>
-        let s = { bank:1000, startBank:1000, decks:8, pen:50, rc:0, dealt:0, p1:[], d:[], target:'p1', hist:[], undoLog:[], stats:{h:0,w:0,l:0,b:0,p:0} };
+        let s = { bank:1000, startBank:1000, decks:8, dealt:0, rc:0, count10:0, countA:0, p1:[], p2:[], d:[], target:'p1', isSplit:false, hist:[], undoLog:[], stats:{h:0,w:0,l:0} };
         const TAGS = { 11:-1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:0, 8:0, 9:0, 10:-1 };
+
         function startGame(){
-            s.startBank = parseFloat(document.getElementById('cfg-bank').value) || 1000;
-            s.bank = s.startBank;
-            s.decks = parseInt(document.getElementById('cfg-decks').value) || 8;
-            s.pen = parseInt(document.getElementById('cfg-pen').value) || 50;
+            s.startBank=parseFloat(document.getElementById('cfg-bank').value)||1000;
+            s.bank=s.startBank; s.decks=parseInt(document.getElementById('cfg-decks').value)||8;
             document.getElementById('config-sec').classList.remove('active');
             document.getElementById('navbar').classList.remove('hidden');
-            nav('game-sec', document.getElementById('t-game'));
-            save(); update();
+            nav('game-sec', document.getElementById('t-game')); update();
         }
-        function add(v){ s.rc+=TAGS[v]; s.dealt++; s.undoLog.push({v,t:s.target}); s[s.target].push(v); update(); }
-        function getS(h){ let v=h.reduce((a,b)=>a+b,0), aces=h.filter(x=>x===11).length; while(v>21 && aces>0){v-=10;aces--} return v; }
-        function resolve(){
-            let ps=getS(s.p1), ds=getS(s.d), tc=getTC(), bet=(tc<1)?1:(tc<2)?2:(tc<3)?5:(tc<4.5)?8:12;
-            let res="", gain=0, col=""; s.stats.h++;
-            if(ps>21){res="SBALLATO"; gain=-bet; col="var(--lose)"; s.stats.b++; s.stats.l++;}
-            else if(ds>21){res="VINTO (D.BUST)"; gain=bet; col="var(--win)"; s.stats.w++;}
-            else if(ps>ds){res="VINTO"; gain=(ps===21&&s.p1.length===2)?bet*1.5:bet; col="var(--win)"; s.stats.w++;}
-            else if(ps<ds){res="PERSO"; gain=-bet; col="var(--lose)"; s.stats.l++;}
-            else {res="PARI"; gain=0; col="#888"; s.stats.p++;}
-            s.bank+=gain; s.hist.unshift({m:res, s:`${ps} vs ${ds}`, v:gain+"€", c:col});
-            s.p1=[]; s.d=[]; s.target='p1'; save(); update();
+
+        function add(v){ 
+            s.rc+=TAGS[v]; s.dealt++; s.undoLog.push({v,t:s.target}); s[s.target].push(v); 
+            if(v===10) s.count10++; if(v===11) s.countA++;
+            if(!s.isSplit && s.p1.length===1 && s.d.length===0) s.target='d';
+            else if(!s.isSplit && s.p1.length===1 && s.d.length===1) s.target='p1';
+            update(); save();
         }
+
+        function getS(h){ let v=h.reduce((a,b)=>a+b,0), aces=h.filter(x=>x===11).length; while(v>21&&aces>0){v-=10;aces--} return v; }
         function getTC(){ return s.rc/Math.max(1,(s.decks*52-s.dealt)/52); }
+
         function update(){
-            let tc=getTC();
-            document.getElementById('sum-p1').innerText=getS(s.p1); document.getElementById('sum-d').innerText=getS(s.d);
+            let tc=getTC(), ps=getS(s[s.target==='d'?'p1':s.target]), dv=s.d[0]||0;
+            let totalRem=(s.decks*52)-s.dealt;
+            let prob10=(((s.decks*16)-s.count10)/totalRem*100).toFixed(1);
+            let probA=(((s.decks*4)-s.countA)/totalRem*100).toFixed(1);
+
+            document.getElementById('prob-10').innerText=prob10+"%";
+            document.getElementById('prob-a').innerText=probA+"%";
+            document.getElementById('sum-p1').innerText=getS(s.p1);
+            document.getElementById('sum-p2').innerText=getS(s.p2);
+            document.getElementById('sum-d').innerText=getS(s.d);
             document.getElementById('l-rc').innerText=s.rc; document.getElementById('l-tc').innerText=tc.toFixed(1);
-            document.getElementById('l-bet').innerText=(tc<1)?1:(tc<2)?2:(tc<3)?5:(tc<4.5)?8:12 + "€"; document.getElementById('l-dealt').innerText=s.dealt;
+            document.getElementById('l-bet').innerText=(tc<1?1:tc<2?2:tc<3?5:tc<4.5?8:12)+"€";
+            document.getElementById('l-dealt').innerText=s.dealt;
+
+            // Strategia semplificata per spazio
+            let advice="AZIONE", color="var(--primary)";
+            if(ps>21) advice="SBALLATO", color="var(--lose)";
+            else if(ps>=17) advice="STAI", color="var(--lose)";
+            else if(ps>0 && dv>0) advice=(dv<=6&&ps>=13)?"STAI":"CHIAMA", color=(dv<=6&&ps>=13)?"var(--lose)":"var(--win)";
             
-            document.getElementById('f-hands').innerText=s.stats.h; document.getElementById('f-win').innerText=s.stats.w;
-            document.getElementById('f-lose').innerText=s.stats.l; document.getElementById('f-bust').innerText=s.stats.b; document.getElementById('f-push').innerText=s.stats.p;
-            document.getElementById('f-start').innerText=s.startBank+"€"; document.getElementById('f-bal').innerText=Math.round(s.bank)+"€";
-            let prof=s.bank-s.startBank; document.getElementById('f-prof').innerText=(prof>=0?'+':'')+prof+"€"; document.getElementById('f-prof').style.color=prof>=0?'var(--win)':'var(--lose)';
-            document.getElementById('f-roi').innerText=((prof/s.startBank)*100).toFixed(2)+"%"; document.getElementById('f-roi').style.color=prof>=0?'var(--win)':'var(--lose)';
-            
-            let hHtml=""; s.hist.slice(0,10).forEach(i=>{ hHtml+=`<div class="hist-row"><span>${i.m}</span><span style="color:${i.c}">${i.v}</span></div>`});
-            document.getElementById('history-list').innerHTML=hHtml;
+            let st=document.getElementById('strat'); st.innerText=advice; st.style.color=color; st.style.borderColor=color;
+            document.getElementById('split-btn').style.display=(!s.isSplit && s.p1.length===2 && s.p1[0]===s.p1[1])?'block':'none';
+            document.getElementById('box-p2').style.display=s.isSplit?'block':'none';
             document.getElementById('box-p1').className="target-box "+(s.target==='p1'?'active':'');
-            document.getElementById('box-d').className="target-box "+(s.target==='d'?'active':'');
+            document.getElementById('box-p2').className="target-box "+(s.target==='p2'?'active':'');
+            document.getElementById('btn-ins').className=(dv===11&&tc>=3)?"side-btn active":"side-btn";
+            document.getElementById('btn-side').className=(tc>=5)?"side-btn active":"side-btn";
             
-            document.getElementById('btn-ins').className = tc >= 3 ? "side-btn active" : "side-btn";
-            document.getElementById('btn-side').className = tc >= 5 ? "side-btn active" : "side-btn";
-            document.getElementById('sb-tc').innerText = tc.toFixed(1);
-            if(tc >= 5) { document.getElementById('sb-msg').innerText = "Punta su TUTTE le Side Bets!"; document.getElementById('sb-list').style.display = "block"; }
-            else { document.getElementById('sb-msg').innerText = "Nessuna Side Bet consigliata."; document.getElementById('sb-list').style.display = "none"; }
+            document.getElementById('f-bal').innerText=Math.round(s.bank)+"€";
+            document.getElementById('f-h').innerText=s.stats.h;
+            document.getElementById('f-roi').innerText=(((s.bank-s.startBank)/s.startBank)*100).toFixed(1)+"%";
         }
-        function setT(t){ s.target=t; update(); }
-        function undo(){ if(s.undoLog.length){ let l=s.undoLog.pop(); s[l.t].pop(); s.rc-=TAGS[l.v]; s.dealt--; update(); } }
+
+        function resolve(){
+            let tc=getTC(), bet=(tc<1?1:tc<2?2:tc<3?5:tc<4.5?8:12), ds=getS(s.d);
+            let ps=getS(s.p1); s.stats.h++;
+            if(ps>21) s.bank-=bet; else if(ds>21||ps>ds) s.bank+=bet; else if(ps<ds) s.bank-=bet;
+            s.p1=[]; s.p2=[]; s.d=[]; s.target='p1'; s.isSplit=false; save(); update();
+        }
+
+        function undo(){ if(s.undoLog.length){ let l=s.undoLog.pop(); s[l.t].pop(); s.rc-=TAGS[l.v]; if(l.v===10) s.count10--; if(l.v===11) s.countA--; s.dealt--; update(); } }
         function nav(sec,btn){ document.querySelectorAll('.section').forEach(x=>x.classList.remove('active')); document.getElementById(sec).classList.add('active'); if(btn){document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active')); btn.classList.add('active');} }
-        function save(){ localStorage.setItem('bj_data_v3_2', JSON.stringify(s)); }
-        function load(){ let d=localStorage.getItem('bj_data_v3_2'); if(d){s=JSON.parse(d); document.getElementById('config-sec').classList.remove('active'); document.getElementById('navbar').classList.remove('hidden'); nav('game-sec', document.getElementById('t-game')); update();} }
-        function fullReset(){ if(confirm("Reset totale?")){localStorage.clear(); location.reload();} }
+        function save(){ localStorage.setItem('bj_oracle_v3_5', JSON.stringify(s)); }
+        function load(){ let d=localStorage.getItem('bj_oracle_v3_5'); if(d){s=JSON.parse(d); document.getElementById('config-sec').classList.remove('active'); document.getElementById('navbar').classList.remove('hidden'); nav('game-sec', document.getElementById('t-game')); update();} }
+        function fullReset(){ if(confirm("Azzera tutto?")){localStorage.clear(); location.reload();} }
         window.onload=load;
     </script>
 </body>
