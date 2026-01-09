@@ -1,324 +1,508 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>BJ Counter</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;700&display=swap">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>BJ Counter • Infinite</title>
+  <meta name="theme-color" content="#0f001a"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg: #0d0015;
-      --card-bg: #1a0033;
-      --accent: #c300ff;
-      --accent-glow: rgba(195, 0, 255, 0.4);
-      --text: #e0d0ff;
-      --positive: #00ff9d;
-      --negative: #ff3366;
-      --neutral: #ffd700;
+      --bg:        #0a0012;
+      --card:       #140028;
+      --accent:     #c300ff;
+      --accent-dim: #8a00b3;
+      --text:       #e9d9ff;
+      --text-dim:   #b090d0;
+      --green:      #00ff9d;
+      --red:        #ff3366;
+      --yellow:     #ffd700;
+      --border:     rgba(195,0,255,0.35);
+      --panel:      rgba(20,0,40,0.6);
     }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
     body {
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
       background: var(--bg);
       color: var(--text);
+      font-family: 'Roboto Mono', monospace;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
     }
-    h1, h2 {
-      font-family: 'Orbitron', sans-serif;
-      color: var(--accent);
-      text-shadow: 0 0 10px var(--accent-glow);
-      text-align: center;
-      margin: 10px 0;
-    }
-    .header {
-      background: linear-gradient(to bottom, #1a0033, #0d0015);
-      padding: 15px;
-      border-bottom: 2px solid var(--accent);
-      text-align: center;
-    }
-    .tab-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #0d0015;
-      border-top: 2px solid var(--accent);
-      display: flex;
-      height: 70px;
+
+    header {
+      background: linear-gradient(to bottom, #140028, #0a0012);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
       z-index: 100;
     }
-    .tab {
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--accent);
+      font-size: 22px;
+      text-align: center;
+      text-shadow: 0 0 10px var(--accent-dim);
+    }
+
+    .status-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .status-item {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 4px;
+    }
+
+    .status-label   { font-size: 11px; opacity: 0.7; }
+    .status-value   { font-size: 18px; font-weight: bold; }
+
+    main {
+      flex: 1;
+      padding: 16px;
+      padding-bottom: 120px;
+      overflow-y: auto;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      color: var(--accent);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    .hands {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .hand-box {
+      background: rgba(195,0,255,0.08);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .hand-title { font-size: 13px; opacity: 0.8; }
+    .hand-cards { font-size: 28px; letter-spacing: 4px; min-height: 40px; }
+    .hand-total  { font-size: 20px; font-weight: bold; margin-top: 6px; }
+
+    .suggestion {
+      background: rgba(195,0,255,0.15);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      margin: 20px 0;
+      min-height: 80px;
+    }
+
+    .outcome {
+      font-size: 32px;
+      font-weight: bold;
+      text-align: center;
+      padding: 24px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    .outcome-win  { background: rgba(0,255,157,0.2); color: var(--green); }
+    .outcome-loss { background: rgba(255,51,102,0.2);  color: var(--red);   }
+    .outcome-push { background: rgba(255,215,0,0.15); color: var(--yellow); }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 24px 0 32px 0;
+    }
+
+    .key {
+      aspect-ratio: 1;
+      background: linear-gradient(145deg, #22004a, #140028);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.14s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+
+    .key:active {
+      transform: scale(0.93);
+      background: var(--accent);
+      box-shadow: 0 0 24px var(--accent);
+    }
+
+    .action-row {
+      display: flex;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 18px;
+      font-size: 17px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-tu     { background: #00c853; color: black; }
+    .btn-banco  { background: #d500f9; color: white; }
+    .btn-fine   { background: #ff1744; color: white; }
+    .btn-undo   { background: #ff9100; color: black; }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0; right: 0;
+      height: 80px;
+      background: #0a0012;
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 99;
+    }
+
+    .nav-item {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: var(--text);
-      font-size: 12px;
-      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 11px;
       transition: all 0.3s;
     }
-    .tab.active {
+
+    .nav-item.active {
       color: var(--accent);
       text-shadow: 0 0 10px var(--accent);
     }
-    .tab i { font-size: 24px; margin-bottom: 4px; }
-    .content {
-      flex: 1;
-      padding: 15px;
-      padding-bottom: 90px;
-      overflow-y: auto;
-    }
-    .section {
-      background: var(--card-bg);
-      border: 1px solid var(--accent);
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 15px var(--accent-glow);
-    }
-    .section-title {
-      color: var(--accent);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 18px;
-      margin-bottom: 10px;
-      border-bottom: 1px solid var(--accent);
-      padding-bottom: 5px;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .stat-box {
-      background: rgba(195,0,255,0.1);
-      border: 1px solid var(--accent);
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-    }
-    .stat-label { font-size: 13px; opacity: 0.8; }
-    .stat-value { font-size: 20px; font-weight: bold; }
-    .positive { color: var(--positive); }
-    .negative { color: var(--negative); }
-    .keypad {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-      margin: 15px 0;
-    }
-    .key {
-      background: linear-gradient(145deg, #2a004a, #1a0033);
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      color: white;
-      font-size: 18px;
-      padding: 15px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-    .key:hover { transform: translateY(-3px); box-shadow: 0 8px 20px var(--accent-glow); }
-    .action-btn {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 16px;
-      margin: 8px 0;
-      cursor: pointer;
-      width: 100%;
-    }
-    .reset-btn { background: #ff3366; }
-    .slider-container {
-      margin: 15px 0;
-    }
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-    }
-    .side-alert {
-      background: rgba(195,0,255,0.15);
-      border: 2px solid var(--accent);
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-      margin: 10px 0;
-      font-weight: bold;
-    }
-    .side-alert.active {
-      background: var(--accent);
-      color: black;
-      box-shadow: 0 0 20px var(--accent);
-    }
-    .outcome {
-      font-size: 28px;
-      text-align: center;
-      padding: 20px;
-      border-radius: 12px;
-      margin: 15px 0;
-    }
-    .outcome-win { background: rgba(0,255,157,0.2); color: var(--positive); }
-    .outcome-loss { background: rgba(255,51,102,0.2); color: var(--negative); }
-    .outcome-push { background: rgba(255,215,0,0.2); color: var(--neutral); }
+
+    .nav-icon { font-size: 28px; margin-bottom: 4px; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>BJ COUNTER</h1>
-    <div>Running: <span id="rc">0</span> | True: <span id="tc">0.00</span></div>
-    <div>Bet Consigliata: <span id="betSug">10</span></div>
-  </div>
 
-  <div class="content" id="finanzeContent">
-    <div class="section">
-      <div class="section-title">FINANZE</div>
-      <div class="stats-grid">
-        <div class="stat-box">
-          <div class="stat-label">Bankroll Iniziale</div>
-          <div class="stat-value">$<span id="initBank">1000</span></div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Saldo Attuale</div>
-          <div class="stat-value">$<span id="saldo">1000</span></div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Profitto / Perdita</div>
-          <div class="stat-value" id="profit">$0.00</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Rendimento %</div>
-          <div class="stat-value" id="roi">+0.00%</div>
-        </div>
-      </div>
+<header>
+  <h1>BJ COUNTER</h1>
+
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="status-label">RC</div>
+      <div class="status-value" id="rc">+0</div>
     </div>
-
-    <div class="section">
-      <div class="section-title">STATISTICHE MANI</div>
-      <div class="stats-grid">
-        <div class="stat-box"><div class="stat-label">Giocate</div><div class="stat-value"><span id="mani">0</span></div></div>
-        <div class="stat-box"><div class="stat-label">Vinte</div><div class="stat-value positive"><span id="vinte">0</span></div></div>
-        <div class="stat-box"><div class="stat-label">Perse</div><div class="stat-value negative"><span id="perse">0</span></div></div>
-        <div class="stat-box"><div class="stat-label">Pareggi</div><div class="stat-value"><span id="pareggi">0</span></div></div>
-        <div class="stat-box"><div class="stat-label">Bust Tuoi</div><div class="stat-value"><span id="bustTuoi">0</span></div></div>
-        <div class="stat-box"><div class="stat-label">Bust Dealer</div><div class="stat-value"><span id="bustDealer">0</span></div></div>
-      </div>
+    <div class="status-item">
+      <div class="status-label">TC</div>
+      <div class="status-value" id="tc">+0.0</div>
     </div>
-
-    <div class="section">
-      <div class="section-title">STORICO ULTIME MANI</div>
-      <div id="historyList">Nessuna mano giocata ancora</div>
+    <div class="status-item">
+      <div class="status-label">CARTE</div>
+      <div class="status-value" id="cards">0</div>
+    </div>
+    <div class="status-item">
+      <div class="status-label">BET</div>
+      <div class="status-value" id="bet">10 €</div>
     </div>
   </div>
+</header>
 
-  <div class="content" id="conteggioContent" style="display:none;">
-    <div class="section">
-      <div class="section-title">CONTEGGIO CARTE</div>
-      <div class="stats-grid">
-        <div class="stat-box"><div class="stat-label">RC</div><div class="stat-value"><span id="rc2">0</span></div></div>
-        <div class="stat-box"><div class="stat-label">TC</div><div class="stat-value"><span id="tc2">0.00</span></div></div>
-        <div class="stat-box"><div class="stat-label">Carte</div><div class="stat-value"><span id="carte">0</span></div></div>
-        <div class="stat-box"><div class="stat-label">Bet</div><div class="stat-value">$<span id="betSug2">10</span></div></div>
+<main>
+
+  <div class="section">
+    <div class="section-title">MANO ATTIVA</div>
+    <div class="hands">
+      <div class="hand-box">
+        <div class="hand-title">TU</div>
+        <div class="hand-cards" id="playerCards">-</div>
+        <div class="hand-total" id="playerTotal">0</div>
+      </div>
+      <div class="hand-box">
+        <div class="hand-title">BANCO</div>
+        <div class="hand-cards" id="dealerCards">-</div>
+        <div class="hand-total" id="dealerTotal">0</div>
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">MANO ATTIVA</div>
-      <div>Tu: <span id="tuHand">-</span></div>
-      <div>Banco: <span id="bancoHand">-</span></div>
-      <div class="action-suggestion" id="suggerimento">Suggerimento: -</div>
-      <div class="outcome" id="outcome" style="display:none;"></div>
-      <div class="side-alert" id="insuranceAlert">ASSICURAZIONE: No</div>
-      <div class="side-alert" id="sideBetAlert">SIDE BET: No</div>
+    <div class="suggestion" id="suggestion">
+      Tocca una carta per iniziare...
     </div>
 
+    <div class="outcome" id="outcome" style="display:none;"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">TOCCA LA CARTA</div>
     <div class="keypad">
-      <div class="key" onclick="addCard('A')">A</div>
-      <div class="key" onclick="addCard('2')">2</div>
-      <div class="key" onclick="addCard('3')">3</div>
-      <div class="key" onclick="addCard('4')">4</div>
-      <div class="key" onclick="addCard('5')">5</div>
-      <div class="key" onclick="addCard('6')">6</div>
-      <div class="key" onclick="addCard('7')">7</div>
-      <div class="key" onclick="addCard('8')">8</div>
-      <div class="key" onclick="addCard('9')">9</div>
-      <div class="key" onclick="addCard('10')">10</div>
+      <div class="key" data-value="2">2</div>
+      <div class="key" data-value="3">3</div>
+      <div class="key" data-value="4">4</div>
+      <div class="key" data-value="5">5</div>
+      <div class="key" data-value="6">6</div>
+
+      <div class="key" data-value="7">7</div>
+      <div class="key" data-value="8">8</div>
+      <div class="key" data-value="9">9</div>
+      <div class="key" data-value="10">10</div>
+      <div class="key" data-value="A">A</div>
     </div>
 
-    <button class="action-btn" onclick="toMe()">A ME</button>
-    <button class="action-btn" onclick="toDealer()">AL BANCO</button>
-    <button class="action-btn" onclick="splitHand()">SPLIT</button>
-    <button class="action-btn" onclick="endHand()">FINE MANO</button>
-    <button class="action-btn reset-btn" onclick="undoLastCard()">ANNULLA ULTIMA</button>
-  </div>
-
-  <div class="content" id="impostazioniContent" style="display:none;">
-    <div class="section">
-      <div class="section-title">CONFIGURAZIONE</div>
-      <div class="stat-box">
-        <div class="stat-label">Bankroll Iniziale</div>
-        <input type="number" id="initBankroll" value="1000">
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Numero Mazzi</div>
-        <input type="number" id="decks" value="8">
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Penetrazione %</div>
-        <input type="number" id="penetration" value="75">
-      </div>
-      <div class="slider-container">
-        <div class="stat-label">Percentuale Scommessa</div>
-        <input type="range" min="0.5" max="5" step="0.1" value="1" id="betPerc">
-        <div><span id="betPercValue">1.0</span>%</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Sistema Conteggio</div>
-        <select id="system"><option>Hi-Lo</option><option>KO</option></select>
-      </div>
-      <div class="stat-box">
-        <label><input type="checkbox" id="bustIt"> Attiva Side Bets (Bust It)</label>
-      </div>
-      <button class="action-btn" onclick="saveSettings()">SALVA</button>
+    <div class="action-row">
+      <button class="action-btn btn-tu" id="btnTu">TU</button>
+      <button class="action-btn btn-banco" id="btnBanco">BANCO</button>
     </div>
 
-    <div class="section">
-      <div class="section-title">RESET</div>
-      <button class="action-btn" onclick="resetCount()">Reset Conteggio</button>
-      <button class="action-btn reset-btn" onclick="resetAll()">Reset Completo</button>
+    <div class="action-row">
+      <button class="action-btn btn-fine" id="btnFine">FINE MANO</button>
+      <button class="action-btn btn-undo" id="btnUndo">↶ ANNULLA</button>
     </div>
   </div>
 
-  <div class="tab-bar">
-    <div class="tab active" onclick="showTab('finanze')"><div>💰</div>Finanze</div>
-    <div class="tab" onclick="showTab('conteggio')"><div>♠️</div>Conteggio</div>
-    <div class="tab" onclick="showTab('impostazioni')"><div>⚙️</div>Impostazioni</div>
-  </div>
+</main>
 
-  <script>
-    // JS logic remains similar to previous versions
-    // Add tab switching
-    function showTab(tab) {
-      document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
-      document.getElementById(tab + 'Content').style.display = 'block';
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+<nav class="bottom-nav">
+  <div class="nav-item active" data-tab="counter">
+    <div class="nav-icon">♠️</div>
+    Contatore
+  </div>
+  <div class="nav-item" data-tab="stats">
+    <div class="nav-icon">$</div>
+    Stats
+  </div>
+  <div class="nav-item" data-tab="settings">
+    <div class="nav-icon">⚙️</div>
+    Setup
+  </div>
+</nav>
+
+<script>
+// ──────────────────────────────────────────────────────────────────────────────
+// Stato di gioco
+// ──────────────────────────────────────────────────────────────────────────────
+
+let running = 0;
+let cardsSeen = 0;
+let decks = 8;
+let penetration = 0.75;
+let bankroll = 1000;
+let betBase = 10;
+
+let playerHand = [];
+let dealerHand = [];
+let phase = 0; // 0=tu1, 1=banco, 2=tu2, 3+=manuale
+
+const countVal = {2:1,3:1,4:1,5:1,6:1,7:0,8:0,9:0,10:-1,'A':-1};
+const cardVal  = {2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,'A':11};
+
+const rcEl = document.getElementById('rc');
+const tcEl = document.getElementById('tc');
+const cardsEl = document.getElementById('cards');
+const betEl = document.getElementById('bet');
+
+const playerCardsEl = document.getElementById('playerCards');
+const playerTotalEl = document.getElementById('playerTotal');
+const dealerCardsEl = document.getElementById('dealerCards');
+const dealerTotalEl = document.getElementById('dealerTotal');
+
+const suggestionEl = document.getElementById('suggestion');
+const outcomeEl = document.getElementById('outcome');
+
+const btnTu = document.getElementById('btnTu');
+const btnBanco = document.getElementById('btnBanco');
+const btnFine = document.getElementById('btnFine');
+const btnUndo = document.getElementById('btnUndo');
+
+let lastAction = null;
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Funzioni core
+// ──────────────────────────────────────────────────────────────────────────────
+
+function trueCount() {
+  let left = Math.max(0.5, decks * (1 - cardsSeen / (decks * 52 * penetration)));
+  return running / left;
+}
+
+function updateDisplay() {
+  let tc = trueCount();
+  rcEl.textContent = running >= 0 ? `+${running}` : running;
+  tcEl.textContent = tc >= 0 ? `+${tc.toFixed(1)}` : tc.toFixed(1);
+  cardsEl.textContent = cardsSeen;
+
+  let mult = Math.max(1, Math.round(tc + 1));
+  let sugBet = Math.round(betBase * mult);
+  betEl.textContent = `${sugBet} €`;
+
+  playerCardsEl.textContent = playerHand.length ? playerHand.join(' ') : '-';
+  dealerCardsEl.textContent = dealerHand.length ? dealerHand.join(' ') : '-';
+
+  playerTotalEl.textContent = handTotal(playerHand);
+  dealerTotalEl.textContent = handTotal(dealerHand);
+}
+
+function handTotal(cards) {
+  let v = 0, aces = 0;
+  for (let c of cards) {
+    let val = cardVal[c];
+    v += val;
+    if (c === 'A') aces++;
+  }
+  while (v > 21 && aces--) v -= 10;
+  return v || '-';
+}
+
+function suggestAction() {
+  if (phase < 2) {
+    const msgs = ["Tocca tua 1ª carta...", "Tocca carta banco...", "Tocca tua 2ª carta..."];
+    suggestionEl.textContent = msgs[phase];
+    return;
+  }
+
+  let p = handTotal(playerHand);
+  let dUp = dealerHand[0] ? cardVal[dealerHand[0]] : 0;
+
+  let tc = trueCount();
+
+  // Semplificata - espandibile con tabella completa
+  let action = "PRENDI";
+  if (p >= 17) action = "STA";
+  else if (p === 12 && dUp >=4 && dUp <=6) action = "STA";
+  else if (p >=13 && p <=16 && dUp <=6) action = "STA";
+
+  // Deviazioni base Illustrious 18
+  if (tc >= 3 && dUp === 11 && p === 11) action = "RADDOPPIA";
+  if (tc >= 0 && p === 16 && dUp === 10) action = "STA";
+
+  suggestionEl.textContent = `AZIONE: ${action}`;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Input carte
+// ──────────────────────────────────────────────────────────────────────────────
+
+document.querySelectorAll('.key').forEach(k => {
+  k.onclick = () => {
+    let c = k.dataset.value;
+    running += countVal[c] || 0;
+    cardsSeen++;
+
+    if (phase === 0) {
+      playerHand.push(c);
+      phase = 1;
+    } else if (phase === 1) {
+      dealerHand.push(c);
+      phase = 2;
+    } else if (phase === 2) {
+      playerHand.push(c);
+      phase = 3;
+      btnTu.classList.add('active');
+    } else {
+      // manuale
+      if (btnTu.classList.contains('active')) {
+        playerHand.push(c);
+      } else {
+        dealerHand.push(c);
+      }
     }
 
-    // For betPerc slider update
-    document.getElementById('betPerc')?.addEventListener('input', e => {
-      document.getElementById('betPercValue').textContent = e.target.value;
-    });
+    lastAction = {card: c};
 
-    // Rest of the JS (addCard, updateAll, saveSettings, etc.) from previous version
-    // Integrate here: use localStorage, calculate TC, suggestions, outcome display, etc.
-    // For brevity, assume you copy-paste the core logic from the last complete version
-  </script>
+    updateDisplay();
+    suggestAction();
+  };
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Pulsanti
+// ──────────────────────────────────────────────────────────────────────────────
+
+btnTu.onclick = () => {
+  btnTu.classList.add('active');
+  btnBanco.classList.remove('active');
+};
+
+btnBanco.onclick = () => {
+  btnBanco.classList.add('active');
+  btnTu.classList.remove('active');
+};
+
+btnFine.onclick = () => {
+  let p = handTotal(playerHand);
+  let d = handTotal(dealerHand);
+
+  let msg, cls;
+
+  if (p > 21)               { msg="SBALLATO"; cls="outcome-loss"; }
+  else if (d > 21)          { msg="BANCO SBALLATO – VINCI!"; cls="outcome-win"; }
+  else if (p > d)           { msg="HAI VINTO!"; cls="outcome-win"; }
+  else if (p === d)         { msg="PAREGGIO"; cls="outcome-push"; }
+  else                      { msg="HAI PERSO"; cls="outcome-loss"; }
+
+  outcomeEl.textContent = msg;
+  outcomeEl.className = `outcome ${cls}`;
+  outcomeEl.style.display = 'block';
+
+  setTimeout(() => {
+    playerHand = [];
+    dealerHand = [];
+    phase = 0;
+    outcomeEl.style.display = 'none';
+    updateDisplay();
+    suggestAction();
+    btnTu.classList.add('active');
+    btnBanco.classList.remove('active');
+  }, 2800);
+};
+
+btnUndo.onclick = () => {
+  if (!lastAction) return;
+  running -= countVal[lastAction.card] || 0;
+  cardsSeen--;
+  playerHand.pop(); // semplificato
+  updateDisplay();
+  suggestAction();
+  lastAction = null;
+};
+
+// Init
+updateDisplay();
+suggestAction();
+btnTu.classList.add('active');
+</script>
 </body>
 </html>
