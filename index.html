@@ -1,246 +1,444 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Blackjack Oracle ELITE v4.4</title>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root {
-            --primary: #bd00ff; --primary-glow: rgba(189, 0, 255, 0.6);
-            --bg: #000; --panel: #0a0a0a; --border: #1a1a1a;
-            --text: #fff; --win: #00ff88; --lose: #ff0055; --action: #00d4ff;
-        }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .tabs { display: flex; background: #050505; border-top: 1px solid var(--border); height: 70px; position: fixed; bottom: 0; width: 100%; z-index: 100; }
-        .tab-btn { flex: 1; border: none; background: none; color: #555; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; text-transform: uppercase; }
-        .tab-btn.active { color: var(--primary); }
-        .section { flex: 1; display: none; padding: 15px; overflow-y: auto; margin-bottom: 75px; }
-        .section.active { display: block; }
-        
-        .target-header { display: flex; gap: 8px; margin-bottom: 12px; }
-        .target-box { flex: 1; background: #0f0f0f; border: 2px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; transition: 0.2s; }
-        .target-box.active { border-color: var(--primary); box-shadow: 0 0 20px var(--primary-glow); }
-        .target-box.split-active { border-color: var(--action); box-shadow: 0 0 15px rgba(0,212,255,0.4); }
-        .sum { font-size: 26px; font-weight: 900; }
-
-        .strat-banner { background: #111; border: 2px solid var(--primary); border-radius: 12px; padding: 15px; text-align: center; font-size: 22px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; min-height: 30px; }
-
-        .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; }
-        .key { height: 55px; border: none; border-radius: 8px; color: white; font-size: 24px; font-weight: 900; }
-        .k-high { background: #8a1c1c; } .k-low { background: #0f5c37; } .k-mid { background: #3e413e; }
-
-        .glass-card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 12px; margin-bottom: 10px; }
-        .f-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1a1a1a; font-size: 14px; }
-        .side-btn { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: #fff; font-weight: bold; margin-bottom: 12px; text-align: center; font-size: 10px; }
-        .side-btn.active { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
-
-        .btn-main { background: var(--primary); border: none; border-radius: 12px; padding: 18px; color: white; font-weight: 900; width: 100%; font-size: 16px; box-shadow: 0 0 20px var(--primary-glow); }
-        #config-sec { background: #000; position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; justify-content: center; padding: 30px; }
-        .config-input { background: #111; border: 1px solid var(--border); border-radius: 10px; padding: 15px; color: white; width: 100%; margin: 10px 0; font-size: 18px; box-sizing: border-box; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BJ Counter</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { background: #111; color: #fff; font-family: Arial; margin: 0; padding: 0; }
+    .container { max-width: 360px; margin: auto; padding: 10px; }
+    .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+    button { background: #333; color: #fff; border: none; padding: 20px; font-size: 20px; border-radius: 5px; cursor: pointer; }
+    .count { font-size: 30px; text-align: center; }
+    .suggestion { color: #ff0; text-align: center; }
+    .finances { background: #222; padding: 10px; margin-top: 10px; }
+    .history { max-height: 200px; overflow-y: scroll; background: #222; padding: 10px; }
+    .split { display: flex; justify-content: space-around; }
+    .hand { flex: 1; text-align: center; border: 1px solid #444; margin: 5px; padding: 5px; }
+    .settings { background: #222; padding: 10px; margin-top: 10px; }
+    input { background: #333; color: #fff; border: 1px solid #444; padding: 5px; }
+    .post-hand { color: #aaa; text-align: center; margin-top: 10px; }
+    /* Stealth mode: make it look like a calculator */
+    .stealth .count, .stealth .suggestion, .stealth .finances, .stealth .history, .stealth .settings { display: none; }
+    .stealth .buttons button:not(.calc-btn) { display: none; }
+    .stealth .buttons { grid-template-columns: repeat(4, 1fr); }
+    .calc-btn { /* Style for calc buttons */ }
+  </style>
 </head>
 <body>
-
-    <div id="config-sec">
-        <h1 style="color:var(--primary); text-align:center;">ORACLE ELITE</h1>
-        <label style="color:#888; font-size:12px;">BANKROLL (€)</label><input type="number" id="cfg-bank" class="config-input" value="1000">
-        <label style="color:#888; font-size:12px;">MAZZI (8)</label><input type="number" id="cfg-decks" class="config-input" value="8">
-        <label style="color:#888; font-size:12px;">PENETRAZIONE (%)</label><input type="number" id="cfg-pen" class="config-input" value="50">
-        <button class="btn-main" onclick="initApp()">ATTIVA SISTEMA</button>
+  <div class="container">
+    <div class="count">Running: 0 | True: 0</div>
+    <div class="suggestion">Suggerimento: -</div>
+    <div class="hands">
+      <div id="playerHand">Player: </div>
+      <div id="dealerHand">Dealer: </div>
+      <div class="split" id="splitHands"></div>
     </div>
-
-    <div id="game-sec" class="section">
-        <div class="target-header">
-            <div id="box-p1" class="target-box active" onclick="setT('p1')"><div style="color:#888; font-size:9px;">TU A</div><div id="sum-p1" class="sum">0</div></div>
-            <div id="box-p2" class="target-box" style="display:none" onclick="setT('p2')"><div style="color:#888; font-size:9px;">TU B</div><div id="sum-p2" class="sum">0</div></div>
-            <div id="box-d" class="target-box" onclick="setT('d')"><div style="color:#888; font-size:9px;">BANCO</div><div id="sum-d" class="sum">0</div></div>
-        </div>
-
-        <div id="strat-box" class="strat-banner">READY</div>
-
-        <div class="glass-card" style="display: flex; gap: 10px; text-align: center; padding: 8px;">
-            <div style="flex:1"><div style="color:#888; font-size:9px;">PROB 10</div><div id="p10-txt" style="color:var(--action); font-weight:bold; font-size:18px;">30.7%</div></div>
-            <div style="flex:1"><div style="color:#888; font-size:9px;">PROB ASSE</div><div id="pa-txt" style="color:var(--win); font-weight:bold; font-size:18px;">7.7%</div></div>
-        </div>
-
-        <div style="display:flex; gap:6px;">
-            <div id="btn-ins" class="side-btn">ASSICURAZIONE</div>
-            <div id="btn-side" class="side-btn" onclick="nav('sidebets-sec', null)">SIDE BETS SISAL</div>
-        </div>
-
-        <div class="keypad">
-            <button class="key k-high" onclick="hit(11)">A</button>
-            <button class="key k-low" onclick="hit(2)">2</button>
-            <button class="key k-low" onclick="hit(3)">3</button>
-            <button class="key k-low" onclick="hit(4)">4</button>
-            <button class="key k-low" onclick="hit(5)">5</button>
-            <button class="key k-low" onclick="hit(6)">6</button>
-            <button class="key k-mid" onclick="hit(7)">7</button>
-            <button class="key k-mid" onclick="hit(8)">8</button>
-            <button class="key k-mid" onclick="hit(9)">9</button>
-            <button class="key k-high" onclick="hit(10)">10</button>
-        </div>
-
-        <div style="display:flex; gap:6px;">
-            <button id="split-btn" class="act-btn" style="flex:1; background:#001a33; border:1px solid var(--action); color:var(--action); border-radius:10px; display:none; font-weight:bold;" onclick="doSplit()">SPLIT</button>
-            <button class="btn-main" style="flex:2; margin-top:0;" onclick="resolve()">FINE MANO</button>
-        </div>
-        <button onclick="undo()" style="background:none; border:none; color:#ff8c00; width:100%; margin-top:10px; font-weight:bold; font-size:11px; text-transform:uppercase;">Undo Ultima Carta</button>
-
-        <div class="glass-card" style="display:grid; grid-template-columns: repeat(4, 1fr); margin-top:10px; text-align:center; padding:10px;">
-            <div><div style="color:#888; font-size:9px;">RC</div><div id="ui-rc" style="color:var(--primary)">0</div></div>
-            <div><div style="color:#888; font-size:9px;">TC</div><div id="ui-tc" style="color:var(--primary)">0.0</div></div>
-            <div><div style="color:#888; font-size:9px;">BET</div><div id="ui-bet" style="color:var(--win)">1€</div></div>
-            <div><div style="color:#888; font-size:9px;">CARTE</div><div id="ui-dealt">0</div></div>
-        </div>
+    <div class="buttons">
+      <button class="calc-btn" onclick="addCard('2')">2</button>
+      <button class="calc-btn" onclick="addCard('3')">3</button>
+      <button class="calc-btn" onclick="addCard('4')">4</button>
+      <button class="calc-btn" onclick="addCard('5')">5</button>
+      <button class="calc-btn" onclick="addCard('6')">6</button>
+      <button class="calc-btn" onclick="addCard('7')">7</button>
+      <button class="calc-btn" onclick="addCard('8')">8</button>
+      <button class="calc-btn" onclick="addCard('9')">9</button>
+      <button class="calc-btn" onclick="addCard('10')">10</button>
+      <button class="calc-btn" onclick="addCard('J')">J</button>
+      <button class="calc-btn" onclick="addCard('Q')">Q</button>
+      <button class="calc-btn" onclick="addCard('K')">K</button>
+      <button class="calc-btn" onclick="addCard('A')">A</button>
+      <button onclick="toMe()">A me</button>
+      <button onclick="toDealer()">Al dealer</button>
+      <button onclick="splitHand()">Split</button>
+      <button onclick="endHand()">Fine Mano</button>
+      <button onclick="resetHand()">Reset Mano</button>
+      <button onclick="resetShoe()">Reset Shoe</button>
+      <button onclick="toggleStealth()">Stealth</button>
+      <button onclick="exportHistory()">Export CSV</button>
     </div>
-
-    <div id="fin-sec" class="section">
-        <h3 style="color:var(--primary)">STATISTICHE LIVE</h3>
-        <div class="glass-card">
-            <div class="f-row"><span>Mani Giocate</span><span id="ui-h">0</span></div>
-            <div class="f-row"><span>Vinte</span><span id="ui-w" style="color:var(--win)">0</span></div>
-            <div class="f-row"><span>Perse</span><span id="ui-l" style="color:var(--lose)">0</span></div>
-        </div>
-        <h3 style="color:var(--primary)">FINANZE</h3>
-        <div class="glass-card">
-            <div class="f-row"><span>Bankroll Iniziale</span><span id="ui-start">1000€</span></div>
-            <div class="f-row"><span>Saldo Attuale</span><span id="ui-bal" style="color:var(--win); font-weight:bold;">1000€</span></div>
-            <div class="f-row"><span>ROI %</span><span id="ui-roi">0.0%</span></div>
-        </div>
-        <div id="history-list"></div>
+    <div class="post-hand" id="postHandMsg" style="display: none;">Post-mano: Aggiungi carte extra per conteggio</div>
+    <div class="finances">
+      Bankroll: <span id="bankroll">1000</span> | Saldo: <span id="saldo">1000</span> | ROI: <span id="roi">0%</span><br>
+      Mani: <span id="mani">0</span> | Vinte: <span id="vinte">0</span> | Perse: <span id="perse">0</span> | Pareggi: <span id="pareggi">0</span><br>
+      Bust Tuoi: <span id="bustTuoi">0</span> | Bust Dealer: <span id="bustDealer">0</span>
     </div>
-
-    <div id="sidebets-sec" class="section">
-        <h3 style="color:var(--primary); text-align:center;">SIDE BETS</h3>
-        <div id="sb-msg" style="background:var(--panel); padding:20px; border-radius:12px; text-align:center;">Attendere...</div>
-        <button class="act-btn" style="width:100%; margin-top:20px; background:var(--panel); color:white; border:1px solid var(--border); border-radius:10px; padding:15px;" onclick="nav('game-sec', document.getElementById('t-game'))">TORNA</button>
+    <div class="history" id="history"></div>
+    <div class="settings">
+      <label>Decks: <input id="decks" type="number" value="8"></label>
+      <label>Penetration (%): <input id="penetration" type="number" value="75"></label>
+      <label>Bankroll: <input id="initBankroll" type="number" value="1000"></label>
+      <label>Bet Size: <input id="betSize" type="number" value="10"></label>
+      <label>Sistema: <select id="system"><option>Hi-Lo</option><option>KO</option></select></label>
+      <label>Side Bets: <input type="checkbox" id="bustIt"> Bust It</label>
+      <button onclick="saveSettings()">Salva</button>
     </div>
+  </div>
+  <script>
+    // Variabili globali
+    const cardValues = { '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':10, 'Q':10, 'K':10, 'A':11 };
+    let runningCount = 0;
+    let cardsDealt = 0;
+    let decks = 8;
+    let penetration = 0.75;
+    let bankroll = 1000;
+    let saldo = bankroll;
+    let betSize = 10;
+    let mani = 0;
+    let vinte = 0;
+    let perse = 0;
+    let pareggi = 0;
+    let bustTuoi = 0;
+    let bustDealer = 0;
+    let history = [];
+    let handPlayer = [];
+    let handDealer = [];
+    let splitHands = []; // Array di array per mani splittate (fino a 2)
+    let isSplit = false;
+    let inputCount = 0;
+    let assignTo = 'player';
+    let postHandMode = false;
+    let countSystem = 'Hi-Lo';
+    let bustItActive = false;
+    let stealthMode = false;
 
-    <div class="tabs hidden" id="navbar">
-        <button id="t-fin" class="tab-btn" onclick="nav('fin-sec', this)"><i data-lucide="dollar-sign"></i>Finanze</button>
-        <button id="t-game" class="tab-btn active" onclick="nav('game-sec', this)"><i data-lucide="activity"></i>Oracle</button>
-        <button class="tab-btn" onclick="fullReset()"><i data-lucide="settings"></i>Reset</button>
-    </div>
+    // Carica dati da localStorage
+    function loadData() {
+      if (localStorage.runningCount) runningCount = parseInt(localStorage.runningCount);
+      if (localStorage.cardsDealt) cardsDealt = parseInt(localStorage.cardsDealt);
+      if (localStorage.decks) decks = parseInt(localStorage.decks);
+      if (localStorage.penetration) penetration = parseFloat(localStorage.penetration);
+      if (localStorage.bankroll) bankroll = parseFloat(localStorage.bankroll);
+      if (localStorage.saldo) saldo = parseFloat(localStorage.saldo);
+      if (localStorage.betSize) betSize = parseFloat(localStorage.betSize);
+      if (localStorage.mani) mani = parseInt(localStorage.mani);
+      if (localStorage.vinte) vinte = parseInt(localStorage.vinte);
+      if (localStorage.perse) perse = parseInt(localStorage.perse);
+      if (localStorage.pareggi) pareggi = parseInt(localStorage.pareggi);
+      if (localStorage.bustTuoi) bustTuoi = parseInt(localStorage.bustTuoi);
+      if (localStorage.bustDealer) bustDealer = parseInt(localStorage.bustDealer);
+      if (localStorage.history) history = JSON.parse(localStorage.history);
+      if (localStorage.countSystem) countSystem = localStorage.countSystem;
+      if (localStorage.bustItActive) bustItActive = JSON.parse(localStorage.bustItActive);
+      updateAll();
+    }
+    loadData();
 
-    <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playTone(freq, type, dur) {
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + dur);
+    // Salva impostazioni
+    function saveSettings() {
+      decks = parseInt(document.getElementById('decks').value);
+      penetration = parseFloat(document.getElementById('penetration').value) / 100;
+      bankroll = parseFloat(document.getElementById('initBankroll').value);
+      saldo = bankroll; // Reset saldo se cambi bankroll
+      betSize = parseFloat(document.getElementById('betSize').value);
+      countSystem = document.getElementById('system').value;
+      bustItActive = document.getElementById('bustIt').checked;
+      localStorage.decks = decks;
+      localStorage.penetration = penetration;
+      localStorage.bankroll = bankroll;
+      localStorage.saldo = saldo;
+      localStorage.betSize = betSize;
+      localStorage.countSystem = countSystem;
+      localStorage.bustItActive = bustItActive;
+      updateAll();
+    }
+
+    // Aggiungi carta
+    function addCard(card) {
+      if (postHandMode) {
+        // Solo aggiorna count, non assegna a mani
+        runningCount += getCountValue(card);
+        cardsDealt++;
+        vibrateIfHigh();
+        updateCount();
+        return;
+      }
+      if (inputCount < 3) {
+        if (inputCount === 0 || inputCount === 2) {
+          if (isSplit) {
+            splitHands[inputCount / 2].push(card); // Per split, ma iniziale no
+          } else {
+            handPlayer.push(card);
+          }
+        } else if (inputCount === 1) {
+          handDealer.push(card);
         }
-
-        let s = { bank:1000, start:1000, decks:8, pen:50, rc:0, dealt:0, c10:0, cA:0, p1:[], p2:[], d:[], target:'p1', isSplit:false, stats:{h:0,w:0,l:0,p:0}, hist:[], log:[] };
-        const TAGS = { 11:-1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:0, 8:0, 9:0, 10:-1 };
-
-        function initApp() {
-            s.start = parseFloat(document.getElementById('cfg-bank').value);
-            s.bank = s.start; s.decks = parseInt(document.getElementById('cfg-decks').value);
-            document.getElementById('config-sec').style.display = 'none';
-            document.getElementById('navbar').classList.remove('hidden');
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            playTone(880, 'sine', 0.2); update();
+        inputCount++;
+      } else {
+        if (assignTo === 'player') {
+          if (isSplit) {
+            // Assegna a mano attiva split, assume prima mano per semplicità; aggiungi selector se multi
+            splitHands[0].push(card);
+          } else {
+            handPlayer.push(card);
+          }
+        } else {
+          handDealer.push(card);
         }
+      }
+      runningCount += getCountValue(card);
+      cardsDealt++;
+      vibrateIfHigh();
+      updateCount();
+      updateHandsDisplay();
+      updateSuggestion();
+    }
 
-        function hit(v) {
-            playTone(440, 'sine', 0.05);
-            s.rc += TAGS[v]; s.dealt++; s.log.push({ v, t: s.target });
-            s[s.target].push(v);
-            if (v === 10) s.c10++; if (v === 11) s.cA++;
-            if (!s.isSplit && s.p1.length === 1 && s.d.length === 0) s.target = 'd';
-            else if (!s.isSplit && s.p1.length === 1 && s.d.length === 1) s.target = 'p1';
-            update(); save();
+    function getCountValue(card) {
+      if (countSystem === 'Hi-Lo') {
+        if (['2','3','4','5','6'].includes(card)) return 1;
+        if (['10','J','Q','K','A'].includes(card)) return -1;
+        return 0;
+      } else if (countSystem === 'KO') {
+        if (['2','3','4','5','6','7'].includes(card)) return 1;
+        if (['10','J','Q','K','A'].includes(card)) return -1;
+        return 0;
+      }
+      return 0;
+    }
+
+    function toMe() { assignTo = 'player'; }
+    function toDealer() { assignTo = 'dealer'; }
+
+    // Split hand
+    function splitHand() {
+      if (handPlayer.length === 2 && handPlayer[0] === handPlayer[1]) {
+        splitHands = [[handPlayer[0]], [handPlayer[1]]];
+        isSplit = true;
+        handPlayer = []; // Clear main
+        updateHandsDisplay();
+        updateSuggestion();
+      }
+    }
+
+    // Fine mano
+    function endHand() {
+      if (postHandMode) return; // Already ended
+      let nets = [];
+      let hands = isSplit ? splitHands : [handPlayer];
+      hands.forEach(h => {
+        let playerVal = calculateHand(h);
+        let dealerVal = calculateHand(handDealer);
+        let outcome = 'Perso';
+        let net = -betSize;
+        if (h.length >= 6 && playerVal <= 21) { // Six Card Charlie
+          outcome = 'Vinto (Charlie)';
+          net = betSize;
+        } else if (playerVal > 21) {
+          bustTuoi++;
+          outcome = 'Bust Tuoi';
+        } else if (dealerVal > 21) {
+          bustDealer++;
+          outcome = 'Dealer Bust';
+          net = betSize;
+        } else if (playerVal > dealerVal) {
+          outcome = 'Vinto';
+          net = betSize;
+        } else if (playerVal === dealerVal) {
+          outcome = 'Pareggio';
+          net = 0;
+        } else {
+          outcome = 'Perso';
+          net = -betSize;
         }
-
-        function getSum(h) {
-            let v = h.reduce((a, b) => a + b, 0), aces = h.filter(x => x === 11).length;
-            while (v > 21 && aces > 0) { v -= 10; aces--; }
-            return v;
+        // Blackjack payout
+        if (playerVal === 21 && h.length === 2) net = betSize * 1.5;
+        // Bust It side
+        if (bustItActive && dealerVal > 21 && handDealer.length >= 3) {
+          let payout = 0;
+          if (handDealer.length === 3) payout = 8; // Example payouts
+          else if (handDealer.length === 4) payout = 10;
+          else if (handDealer.length === 5) payout = 50;
+          else if (handDealer.length === 6) payout = 100;
+          else if (handDealer.length === 7) payout = 200;
+          else if (handDealer.length >= 8) payout = 250;
+          net += betSize * payout; // Assume side bet = betSize
+          outcome += ` (Bust It: ${payout}:1)`;
         }
+        nets.push(net);
+        if (net > 0) vinte++;
+        else if (net < 0) perse++;
+        else pareggi++;
+      });
+      let totalNet = nets.reduce((a, b) => a + b, 0);
+      saldo += totalNet;
+      mani++;
+      let log = `Mano ${mani}: Player ${JSON.stringify(hands)} (${hands.map(calculateHand)}), Dealer ${handDealer} (${calculateHand(handDealer)}), Outcome: ${nets.map((n, i) => hands[i].join(',') + ': ' + (n > 0 ? 'Vinto' : n < 0 ? 'Perso' : 'Pareggio')).join('; ')}, Net: ${totalNet}`;
+      history.push(log);
+      postHandMode = true;
+      document.getElementById('postHandMsg').style.display = 'block';
+      updateFinances();
+      updateHistory();
+    }
 
-        function doSplit() { s.isSplit = true; s.p2 = [s.p1.pop()]; s.target = 'p1'; playTone(600, 'sine', 0.1); update(); }
+    // Reset mano
+    function resetHand() {
+      handPlayer = [];
+      handDealer = [];
+      splitHands = [];
+      isSplit = false;
+      inputCount = 0;
+      assignTo = 'player';
+      postHandMode = false;
+      document.getElementById('postHandMsg').style.display = 'none';
+      updateHandsDisplay();
+      updateSuggestion();
+    }
 
-        function resolve() {
-            let tc = s.rc / Math.max(1, (s.decks * 52 - s.dealt) / 52);
-            let bet = (tc < 1) ? 1 : (tc < 2) ? 2 : (tc < 3) ? 5 : (tc < 4.5) ? 8 : 12;
-            let ds = getSum(s.d), banner = document.getElementById('strat-box');
-            let hands = [s.p1]; if(s.isSplit) hands.push(s.p2);
+    // Reset shoe
+    function resetShoe() {
+      runningCount = 0;
+      cardsDealt = 0;
+      resetHand();
+      updateCount();
+    }
 
-            hands.forEach((h, idx) => {
-                let ps = getSum(h), res = "", gain = 0, col = ""; s.stats.h++;
-                if (ps > 21) { res = "SBALLATO"; gain = -bet; col = "var(--lose)"; s.stats.l++; playTone(200, 'sawtooth', 0.3); }
-                else if (ds > 21) { res = "BANCO SBALLA"; gain = bet; col = "var(--win)"; s.stats.w++; playTone(1200, 'sine', 0.3); }
-                else if (ps === 21 && h.length === 2) { res = "BLACKJACK!"; gain = bet * 1.5; col = "var(--win)"; s.stats.w++; playTone(1500, 'sine', 0.4); }
-                else if (ps > ds) { res = "HAI VINTO"; gain = bet; col = "var(--win)"; s.stats.w++; playTone(1000, 'sine', 0.2); }
-                else if (ps < ds) { res = "HAI PERSO"; gain = -bet; col = "var(--lose)"; s.stats.l++; playTone(300, 'sine', 0.3); }
-                else { res = "PAREGGIO"; gain = 0; col = "#888"; s.stats.p++; }
-                s.bank += gain;
-                s.hist.unshift({ m: (s.isSplit ? (idx===0?'A: ':'B: ') : '') + res, v: gain.toFixed(1) + "€", c: col });
-                banner.innerText = res; banner.style.color = col; banner.style.borderColor = col;
-            });
+    // Update count
+    function updateCount() {
+      let decksLeft = Math.max(1, decks * (1 - cardsDealt / (decks * 52 * penetration)));
+      let trueCount = runningCount / decksLeft;
+      document.querySelector('.count').innerText = `Running: ${runningCount} | True: ${trueCount.toFixed(2)}`;
+      localStorage.runningCount = runningCount;
+      localStorage.cardsDealt = cardsDealt;
+    }
 
-            setTimeout(() => { s.p1 = []; s.p2 = []; s.d = []; s.target = 'p1'; s.isSplit = false; update(); }, 2000);
-            save();
-        }
+    // Update suggestion
+    function updateSuggestion() {
+      let dealerUp = handDealer[0] ? cardValues[handDealer[0]] : 0;
+      let tc = getTrueCount();
+      let hands = isSplit ? splitHands : [handPlayer];
+      let suggestions = hands.map(h => getAction(h, dealerUp, tc));
+      document.querySelector('.suggestion').innerText = `Suggerimento: ${suggestions.join(' | ')}`;
+      if (handPlayer.length === 2 && handPlayer[0] === handPlayer[1] && !isSplit) {
+        if (getAction(handPlayer, dealerUp, tc) === 'P') document.querySelector('.suggestion').innerText += ' (Split consigliato)';
+      }
+    }
 
-        function update() {
-            let tc = s.rc / Math.max(1, (s.decks * 52 - s.dealt) / 52);
-            let ps = getSum(s[s.target === 'd' ? 'p1' : s.target]), dv = s.d[0] || 0;
-            let rem = (s.decks * 52) - s.dealt;
+    // Get true count
+    function getTrueCount() {
+      let decksLeft = Math.max(1, decks * (1 - cardsDealt / (decks * 52 * penetration)));
+      return runningCount / decksLeft;
+    }
 
-            document.getElementById('sum-p1').innerText = getSum(s.p1);
-            document.getElementById('sum-p2').innerText = getSum(s.p2);
-            document.getElementById('sum-d').innerText = getSum(s.d);
-            document.getElementById('ui-rc').innerText = s.rc;
-            document.getElementById('ui-tc').innerText = tc.toFixed(1);
-            document.getElementById('ui-bet').innerText = (tc < 1 ? 1 : tc < 2 ? 2 : tc < 3 ? 5 : tc < 4.5 ? 8 : 12) + "€";
-            document.getElementById('p10-txt').innerText = (((s.decks * 16) - s.c10) / Math.max(1, rem) * 100).toFixed(1) + "%";
-            document.getElementById('pa-txt').innerText = (((s.decks * 4) - s.cA) / Math.max(1, rem) * 100).toFixed(1) + "%";
-            document.getElementById('ui-dealt').innerText = s.dealt;
+    // Basic strategy + deviations (semplificata, espandi con tabelle complete)
+    function getAction(hand, dealerUp, tc) {
+      let val = calculateHand(hand);
+      let isSoft = hand.includes('A') && val <= 21;
+      let isPair = hand.length === 2 && hand[0] === hand[1];
+      // Basic strategy examples
+      if (isPair) {
+        let pairVal = cardValues[hand[0]];
+        if (pairVal === 11) return 'P'; // Always split A
+        if (pairVal === 8) return 'P'; // Always split 8
+        // Etc.
+      }
+      if (val <= 11) return 'H';
+      if (val >= 17) return 'S';
+      if (val === 12 && dealerUp >= 4 && dealerUp <= 6) return 'S';
+      // Deviations (Illustrious 18 examples for Hi-Lo)
+      if (tc >= 3 && dealerUp === 11 && val === 11) return 'D'; // Double 11 vs A at TC>=3
+      if (tc >= 0 && val === 16 && dealerUp === 10) return 'S'; // Stand 16 vs 10 at TC>=0
+      // Aggiungi più index qui per completezza
+      return 'H'; // Default
+    }
 
-            let banner = document.getElementById('strat-box');
-            let isPair = s[s.target].length === 2 && s[s.target][0] === s[s.target][1];
-            if (ps === 21 && s[s.target].length === 2) { banner.innerText = "BLACKJACK!"; banner.style.color = "var(--win)"; }
-            else if (ps > 21) { banner.innerText = "SBALLATO"; banner.style.color = "var(--lose)"; }
-            else if (ps >= 17) { banner.innerText = "STAI"; banner.style.color = "var(--lose)"; }
-            else if (ps > 0 && dv > 0) {
-                if (isPair && !s.isSplit) { banner.innerText = "DIVIDI"; banner.style.color = "var(--action)"; }
-                else { banner.innerText = (dv <= 6 && ps >= 13) ? "STAI" : "CHIAMA"; banner.style.color = (dv <= 6 && ps >= 13) ? "var(--lose)" : "var(--win)"; }
-            } else { banner.innerText = "READY"; banner.style.color = "var(--primary)"; }
+    // Calculate hand value
+    function calculateHand(hand) {
+      let val = 0;
+      let aces = 0;
+      hand.forEach(c => {
+        let v = cardValues[c];
+        val += v;
+        if (c === 'A') aces++;
+      });
+      while (val > 21 && aces > 0) {
+        val -= 10;
+        aces--;
+      }
+      return val;
+    }
 
-            // UI UPDATES
-            document.getElementById('split-btn').style.display = (!s.isSplit && isPair) ? 'block' : 'none';
-            document.getElementById('box-p2').style.display = s.isSplit ? 'block' : 'none';
-            document.getElementById('box-p1').className = "target-box " + (s.target === 'p1' ? 'active' : '');
-            document.getElementById('box-p2').className = "target-box " + (s.target === 'p2' ? (s.target==='p2'?'active':'') : '');
-            document.getElementById('box-d').className = "target-box " + (s.target === 'd' ? 'active' : '');
-            
-            document.getElementById('btn-ins').className = (dv === 11 && tc >= 3) ? "side-btn active" : "side-btn";
-            document.getElementById('btn-side').className = (tc >= 5) ? "side-btn active" : "side-btn";
-            if(tc >= 5) { document.getElementById('sb-msg').innerText = "Punta: Hot 3, 21+3, Bust It"; playTone(600, 'sine', 0.1); }
-            else document.getElementById('sb-msg').innerText = "Attendi TC +5";
+    // Update hands display
+    function updateHandsDisplay() {
+      document.getElementById('playerHand').innerText = `Player: ${handPlayer.join(', ')} (${calculateHand(handPlayer)})`;
+      document.getElementById('dealerHand').innerText = `Dealer: ${handDealer.join(', ')} (${calculateHand(handDealer)})`;
+      let splitDiv = document.getElementById('splitHands');
+      splitDiv.innerHTML = '';
+      if (isSplit) {
+        splitHands.forEach((h, i) => {
+          let div = document.createElement('div');
+          div.className = 'hand';
+          div.innerText = `Hand ${i+1}: ${h.join(', ')} (${calculateHand(h)})`;
+          splitDiv.appendChild(div);
+        });
+      }
+    }
 
-            document.getElementById('ui-bal').innerText = Math.round(s.bank) + "€";
-            document.getElementById('ui-roi').innerText = (((s.bank - s.start) / s.start) * 100).toFixed(1) + "%";
-            document.getElementById('ui-h').innerText = s.stats.h;
-            document.getElementById('ui-w').innerText = s.stats.w;
-            document.getElementById('ui-l').innerText = s.stats.l;
-            document.getElementById('history-list').innerHTML = s.hist.slice(0, 10).map(i => `<div class="f-row"><span>${i.m}</span><span style="color:${i.c}">${i.v}</span></div>`).join('');
-            lucide.createIcons();
-        }
+    // Update finances
+    function updateFinances() {
+      document.getElementById('bankroll').innerText = bankroll;
+      document.getElementById('saldo').innerText = saldo;
+      document.getElementById('roi').innerText = ((saldo - bankroll) / bankroll * 100).toFixed(2) + '%';
+      document.getElementById('mani').innerText = mani;
+      document.getElementById('vinte').innerText = vinte;
+      document.getElementById('perse').innerText = perse;
+      document.getElementById('pareggi').innerText = pareggi;
+      document.getElementById('bustTuoi').innerText = bustTuoi;
+      document.getElementById('bustDealer').innerText = bustDealer;
+      localStorage.bankroll = bankroll;
+      localStorage.saldo = saldo;
+      localStorage.mani = mani;
+      localStorage.vinte = vinte;
+      localStorage.perse = perse;
+      localStorage.pareggi = pareggi;
+      localStorage.bustTuoi = bustTuoi;
+      localStorage.bustDealer = bustDealer;
+      localStorage.history = JSON.stringify(history);
+    }
 
-        function setT(t) { playTone(600, 'sine', 0.05); s.target = t; update(); }
-        function undo() { if (s.log.length) { let l = s.log.pop(); s[l.t].pop(); s.rc -= TAGS[l.v]; if (l.v === 10) s.c10--; if (l.v === 11) s.cA--; s.dealt--; update(); } }
-        function save() { localStorage.setItem('oracle_elite_v4.4', JSON.stringify(s)); }
-        function load() { let d = localStorage.getItem('oracle_elite_v4.4'); if (d) { s = JSON.parse(d); document.getElementById('config-sec').style.display = 'none'; document.getElementById('navbar').classList.remove('hidden'); update(); } }
-        function nav(sec, btn) { document.querySelectorAll('.section').forEach(x => x.classList.remove('active')); document.getElementById(sec).classList.add('active'); if(btn) { document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active')); btn.classList.add('active'); } lucide.createIcons(); }
-        function fullReset() { if (confirm("RESET TOTALE?")) { localStorage.clear(); location.reload(); } }
-        window.onload = () => { load(); lucide.createIcons(); };
-    </script>
+    // Update history
+    function updateHistory() {
+      document.getElementById('history').innerHTML = history.map(h => `<p>${h}</p>`).join('');
+    }
+
+    // Export history as CSV
+    function exportHistory() {
+      let csv = 'Mano,Outcome,Net\n' + history.join('\n');
+      let blob = new Blob([csv], { type: 'text/csv' });
+      let url = URL.createObjectURL(blob);
+      let a = document.createElement('a');
+      a.href = url;
+      a.download = 'bj_history.csv';
+      a.click();
+    }
+
+    // Toggle stealth mode
+    function toggleStealth() {
+      stealthMode = !stealthMode;
+      document.body.classList.toggle('stealth', stealthMode);
+    }
+
+    // Vibrate if high TC
+    function vibrateIfHigh() {
+      let tc = getTrueCount();
+      if (tc > 2 && 'vibrate' in navigator) navigator.vibrate(200);
+    }
+
+    // Update all
+    function updateAll() {
+      updateCount();
+      updateHandsDisplay();
+      updateSuggestion();
+      updateFinances();
+      updateHistory();
+      document.getElementById('decks').value = decks;
+      document.getElementById('penetration').value = penetration * 100;
+      document.getElementById('initBankroll').value = bankroll;
+      document.getElementById('betSize').value = betSize;
+      document.getElementById('system').value = countSystem;
+      document.getElementById('bustIt').checked = bustItActive;
+    }
+  </script>
 </body>
 </html>
