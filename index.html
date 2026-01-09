@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Oracle DIAMOND v5.2</title>
+
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <style>
@@ -12,39 +13,49 @@
   --bg: #000; --panel: #0a0a0a; --border: #1a1a1a;
   --text: #fff; --win: #00ff88; --lose: #ff0055; --action: #00d4ff; --gold: #ffd700;
 }
+
 body {
   background: var(--bg); color: var(--text);
   font-family: 'Segoe UI', sans-serif;
   margin: 0; padding: 0; height: 100vh;
   display: flex; flex-direction: column; overflow: hidden;
 }
+
 .tabs {
   display: flex; background: #050505;
   border-top: 1px solid var(--border);
   height: 75px; position: fixed; bottom: 0;
   width: 100%; z-index: 100;
 }
+
 .tab-btn {
   flex: 1; border: none; background: none; color: #555;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   font-size: 10px; text-transform: uppercase; font-weight: bold;
 }
+
 .tab-btn.active { color: var(--primary); text-shadow: 0 0 10px var(--glow); }
+
 .section {
   flex: 1; display: none; padding: 15px; overflow-y: auto; margin-bottom: 80px;
 }
+
 .section.active { display: block; }
 
 .target-header { display: flex; gap: 6px; margin-bottom: 12px; }
+
 .target-box {
   flex: 1; background: #0f0f0f; border: 2px solid var(--border);
   border-radius: 12px; padding: 8px; text-align: center;
   min-height: 80px; display: flex; flex-direction: column; justify-content: center;
 }
+
 .target-box.active { border-color: var(--primary); box-shadow: 0 0 20px var(--glow); }
 
 .sum { font-size: 24px; font-weight: 900; }
+
 .cards-view { font-size: 11px; color: #888; letter-spacing: 1px; min-height: 14px; margin-bottom: 4px; }
+
 .label { font-size: 9px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
 
 .strat-banner {
@@ -57,10 +68,12 @@ body {
   display: grid; grid-template-columns: repeat(5, 1fr);
   gap: 6px; margin-bottom: 12px;
 }
+
 .key {
   height: 55px; border: none; border-radius: 10px;
   color: white; font-size: 24px; font-weight: 900;
 }
+
 .k-high { background: #8a1c1c; }
 .k-low { background: #0f5c37; }
 .k-mid { background: #3e413e; }
@@ -80,6 +93,7 @@ body {
   border-radius: 8px; background: var(--panel); color: #fff;
   font-weight: bold; font-size: 10px; text-align: center;
 }
+
 .side-btn.active {
   background: var(--primary); border-color: var(--primary);
   box-shadow: 0 0 15px var(--glow);
@@ -96,6 +110,7 @@ body {
   background: #000; position: fixed; inset: 0; z-index: 1000;
   display: flex; flex-direction: column; justify-content: center; padding: 30px;
 }
+
 .config-input {
   background: #111; border: 1px solid var(--border);
   border-radius: 10px; padding: 15px; color: white;
@@ -106,16 +121,54 @@ table.recap-table {
   width: 100%; border-collapse: collapse;
   margin-top: 10px; font-size: 13px; color: #ccc;
 }
+
 table.recap-table td {
   padding: 8px; border-bottom: 1px solid #222;
 }
+
 table.recap-table td:last-child {
   color: var(--primary); font-weight: bold; text-align: right;
 }
+
+/* Aggiunte nuove, non intrusive */
+.dealer-predict-label {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.dealer-predict-values {
+  font-size: 12px;
+  color: #ddd;
+}
+
+.dealer-predict-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #aaa;
+}
+
+#bust-info, #ins-info {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.side-btn.bust-strong {
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+#adv-stats .f-row span:last-child {
+  color: var(--primary);
+  font-weight: bold;
+}
 </style>
 </head>
-
 <body>
+
 <div id="config-sec">
   <h1 style="color:var(--primary); text-align:center;">ORACLE v5.2</h1>
   <label class="label">BANKROLL (€)</label>
@@ -128,6 +181,7 @@ table.recap-table td:last-child {
 </div>
 
 <div id="game-sec" class="section active">
+
   <div class="glass-card" style="display:grid; grid-template-columns: repeat(4, 1fr); text-align:center; padding:10px;">
     <div>
       <div class="label">RC</div>
@@ -153,16 +207,19 @@ table.recap-table td:last-child {
       <div id="cards-p1" class="cards-view">-</div>
       <div id="sum-p1" class="sum">0</div>
     </div>
+
     <div id="box-p2" class="target-box" style="display:none" onclick="setT('p2')">
       <div class="label">TU B</div>
       <div id="cards-p2" class="cards-view">-</div>
       <div id="sum-p2" class="sum">0</div>
     </div>
+
     <div id="box-d" class="target-box" onclick="setT('d')">
       <div class="label">BANCO</div>
       <div id="cards-d" class="cards-view">-</div>
       <div id="sum-d" class="sum">0</div>
     </div>
+
     <div id="box-o" class="target-box" onclick="setT('o')" style="border-style: dashed; opacity: 0.8;">
       <div class="label">ALTRI</div>
       <div id="cards-o" class="cards-view">-</div>
@@ -183,9 +240,28 @@ table.recap-table td:last-child {
     </div>
   </div>
 
-  <div style="display:flex; gap:8px; margin-bottom:12px;">
-    <div id="btn-ins" class="side-btn">ASSICURAZIONE</div>
-    <div id="btn-side" class="side-btn" onclick="nav('game-sec', null)">SIDE BETS</div>
+  <!-- Dealer Bust Predictor: aggiunta ordinata sotto %10 / %Asse -->
+  <div id="dealer-predictor" class="glass-card">
+    <div class="dealer-predict-label">Dealer Bust Predictor</div>
+    <div class="dealer-predict-values" id="dealer-bust-main">Bust: --%</div>
+    <div class="dealer-predict-row" id="dealer-bust-detail">
+      <span>17: --%</span>
+      <span>18: --%</span>
+      <span>19: --%</span>
+      <span>20: --%</span>
+      <span>21: --%</span>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:8px; margin-bottom:4px;">
+    <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
+      <div id="btn-ins" class="side-btn">ASSICURAZIONE</div>
+      <div id="ins-info"></div>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
+      <div id="btn-side" class="side-btn" onclick="nav('game-sec', null)">SIDE BETS</div>
+      <div id="bust-info"></div>
+    </div>
   </div>
 
   <div class="keypad">
@@ -207,10 +283,12 @@ table.recap-table td:last-child {
   </div>
 
   <button onclick="undo()" style="background:none; border:none; color:#ff8c00; width:100%; margin-top:15px; font-weight:bold; font-size:11px; text-transform:uppercase;">↶ Annulla Errore</button>
+
 </div>
 
 <div id="fin-sec" class="section">
   <h2 style="color:var(--primary)">FINANZE</h2>
+
   <div class="glass-card">
     <div class="f-row"><span>Mani Totali</span><span id="f-h">0</span></div>
     <div class="f-row"><span>Vinte</span><span id="f-w" style="color:var(--win)">0</span></div>
@@ -227,6 +305,14 @@ table.recap-table td:last-child {
   </div>
 
   <div id="history-list"></div>
+
+  <!-- Statistiche avanzate aggiunte -->
+  <div id="adv-stats" class="glass-card">
+    <h4 style="margin:0 0 10px 0; font-size:14px; color:#888;">Statistiche Avanzate</h4>
+    <div class="f-row"><span>Bust Dealer ultime 20 mani</span><span id="adv-bust-rate">--%</span></div>
+    <div class="f-row"><span>TC medio mani vinte</span><span id="adv-tc-win">--</span></div>
+    <div class="f-row"><span>TC medio mani perse</span><span id="adv-tc-lose">--</span></div>
+  </div>
 </div>
 
 <div id="set-sec" class="section">
@@ -277,10 +363,11 @@ let s = {
   o: [],
   target: 'p1',
   isSplit: false,
-  acesSplit: false,   // split di assi attivo
+  acesSplit: false, // split di assi attivo
   stats: { h: 0, w: 0, l: 0, p: 0, b: 0 },
   hist: [],
-  log: []
+  log: [],
+  dealerSim: null // per salvare l'ultima simulazione dealer
 };
 
 const TAGS = { 11:-1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:0, 8:0, 9:0, 10:-1 };
@@ -290,10 +377,8 @@ function initApp() {
   s.bank = s.start;
   s.decks = parseInt(document.getElementById('cfg-decks').value) || 8;
   s.pen = parseInt(document.getElementById('cfg-pen').value) || 50;
-
   document.getElementById('config-sec').style.display = 'none';
   document.getElementById('navbar').classList.remove('hidden');
-
   if (audioCtx.state === 'suspended') audioCtx.resume();
   update();
 }
@@ -308,11 +393,9 @@ function hit(v) {
   }
 
   playTone(440, 'sine', 0.05);
-
   s.rc += TAGS[v];
   s.dealt++;
   s.log.push({ v, t: s.target });
-
   s[s.target].push(v);
   if (v === 10) s.c10++;
   if (v === 11) s.cA++;
@@ -335,7 +418,6 @@ function getSum(h) {
 }
 
 function isSoftHand(h) {
-  // mano soft se c'è almeno un Asso contato come 11
   let total = 0;
   let aces = 0;
   h.forEach(card => {
@@ -350,18 +432,17 @@ function isSoftHand(h) {
     total -= 10;
     aces--;
   }
-  // se è rimasto almeno un asso come 11, è soft
   return h.includes(11) && total <= 21 && aces > 0;
 }
 
 function resolve() {
   let effectiveCards = s.decks * 52; // usiamo tutti i mazzi, il reset conto va fatto a reshuffle
   let tc = s.rc / Math.max(1, (effectiveCards - s.dealt) / 52);
-
   let bet = (tc < 1) ? 1 : (tc < 2) ? 2 : (tc < 3) ? 5 : (tc < 4.5) ? 8 : 12;
 
   let ds = getSum(s.d);
   let dealerBJ = (ds === 21 && s.d.length === 2);
+  let dealerBust = ds > 21;
 
   let hands = [s.p1];
   if (s.isSplit) hands.push(s.p2);
@@ -442,10 +523,15 @@ function resolve() {
 
     s.bank += gain;
 
+    // Estensione innocua di hist con info per statistiche avanzate
     s.hist.unshift({
       m: (s.isSplit ? (idx === 0 ? 'A: ' : 'B: ') : '') + res,
       v: gain.toFixed(1) + "€",
-      c: col
+      c: col,
+      dealerBust: dealerBust,
+      tc: tc,
+      win: gain > 0,
+      lose: gain < 0
     });
 
     document.getElementById('strat-box').innerText = res;
@@ -469,7 +555,6 @@ function resolve() {
 function update() {
   let effectiveCards = s.decks * 52;
   let tc = s.rc / Math.max(1, (effectiveCards - s.dealt) / 52);
-
   let rem = (s.decks * 52) - s.dealt;
   if (rem < 1) rem = 1;
 
@@ -489,7 +574,6 @@ function update() {
     (((s.decks * 16) - s.c10) / Math.max(1, rem) * 100).toFixed(1) + "%";
   document.getElementById('pa-txt').innerText =
     (((s.decks * 4) - s.cA) / Math.max(1, rem) * 100).toFixed(1) + "%";
-
   document.getElementById('ui-dealt').innerText = s.dealt;
 
   // STRATEGIA DI BASE migliorata per 8D, S17, NDAS (no double dopo split)
@@ -498,7 +582,7 @@ function update() {
   let ps = getSum(targetHand);
   let dv = s.d[0] || 0;
   let isPair = targetHand.length === 2 && targetHand[0] === targetHand[1];
-  let isSoft = isSoftHand(targetHand);
+  let soft = isSoftHand(targetHand);
 
   if (!targetHand.length || !dv) {
     banner.innerText = "READY";
@@ -512,9 +596,10 @@ function update() {
   } else if (isPair && !s.isSplit && s.target === 'p1') {
     let pair = targetHand[0];
     let text = "NO SPLIT";
+
     // Regole split semplificate per S17 NDAS
-    if (pair === 11) text = "DIVIDI";                     // AA
-    else if (pair === 8) text = "DIVIDI";                 // 8-8
+    if (pair === 11) text = "DIVIDI"; // AA
+    else if (pair === 8) text = "DIVIDI"; // 8-8
     else if (pair === 9 && ![7, 10, 11].includes(dv)) text = "DIVIDI";
     else if (pair === 7 && dv <= 7) text = "DIVIDI";
     else if (pair === 6 && dv <= 6) text = "DIVIDI";
@@ -523,7 +608,7 @@ function update() {
 
     banner.innerText = text;
     banner.style.color = (text === "DIVIDI") ? "var(--action)" : "#888";
-  } else if (isSoft) {
+  } else if (soft) {
     // Mani soft
     if (ps <= 17) {
       banner.innerText = "CHIAMA";
@@ -573,9 +658,9 @@ function update() {
   document.getElementById('f-l').innerText = s.stats.l;
   document.getElementById('f-b').innerText = s.stats.b;
   document.getElementById('f-p').innerText = s.stats.p;
+
   document.getElementById('f-bal').innerText = Math.round(s.bank) + "€";
   document.getElementById('f-start').innerText = s.start + "€";
-
   let prof = s.bank - s.start;
   document.getElementById('f-prof').innerText = (prof >= 0 ? '+' : '') + prof.toFixed(0) + "€";
   document.getElementById('f-prof').style.color = prof >= 0 ? 'var(--win)' : 'var(--lose)';
@@ -589,6 +674,7 @@ function update() {
   // Side Bets Highlights (Insurance solo se Asso + TC >= 3)
   document.getElementById('btn-ins').className =
     (s.d[0] === 11 && tc >= 3) ? "side-btn active" : "side-btn";
+
   document.getElementById('btn-side').className = (tc >= 5) ? "side-btn active" : "side-btn";
 
   ['p1', 'p2', 'd', 'o'].forEach(t => {
@@ -610,6 +696,12 @@ function update() {
     <tr><td>Penetrazione</td><td>${s.pen} %</td></tr>
   `;
 
+  // Nuove funzionalità aggiunte
+  updateDealerPredictor();
+  updateBustItIndicator();
+  updateInsuranceInfo();
+  updateAdvancedStats();
+
   lucide.createIcons();
 }
 
@@ -623,10 +715,12 @@ function doSplit() {
   if (s.p1.length === 2 && s.p1[0] === s.p1[1]) {
     s.isSplit = true;
     s.p2 = [s.p1.pop()];
+
     // Se split di assi, applica regola: una sola carta aggiuntiva per mano
     if (s.p1[0] === 11 || s.p2[0] === 11) {
       s.acesSplit = true;
     }
+
     s.target = 'p1';
     playTone(600, 'sine', 0.1);
     update();
@@ -668,6 +762,7 @@ function load() {
     s = JSON.parse(d);
     // Compatibilità con versioni vecchie
     if (typeof s.acesSplit === 'undefined') s.acesSplit = false;
+    if (typeof s.dealerSim === 'undefined') s.dealerSim = null;
     document.getElementById('config-sec').style.display = 'none';
     document.getElementById('navbar').classList.remove('hidden');
     update();
@@ -684,10 +779,249 @@ function nav(id, btn) {
   lucide.createIcons();
 }
 
+/* -------------------------
+   Nuove funzioni AGGIUNTE
+   ------------------------- */
+
+// ricostruisce distribuzione carte rimanenti dai log
+function getRemainingCounts() {
+  let counts = {2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0};
+  // ogni mazzo ha 4 di ogni valore 2–A (A=11), ma 10 rappresenta 10,J,Q,K (16 per mazzo)
+  for (let v = 2; v <= 9; v++) counts[v] = 4 * s.decks;
+  counts[11] = 4 * s.decks;
+  counts[10] = 16 * s.decks;
+
+  s.log.forEach(entry => {
+    let v = entry.v;
+    if (counts[v] > 0) counts[v]--;
+  });
+
+  return counts;
+}
+
+function cloneCounts(src) {
+  let dst = {};
+  for (let k in src) dst[k] = src[k];
+  return dst;
+}
+
+function drawRandomCard(counts) {
+  let total = 0;
+  for (let v in counts) total += counts[v];
+  if (total <= 0) return 10; // fallback
+
+  let r = Math.random() * total;
+  let cum = 0;
+  for (let v in counts) {
+    cum += counts[v];
+    if (r <= cum) {
+      counts[v]--;
+      return parseInt(v);
+    }
+  }
+  return 10;
+}
+
+// simulazione dealer S17
+function simulateDealer(iter = 200) {
+  let dv = s.d[0] || 0;
+  if (!dv) {
+    s.dealerSim = null;
+    return null;
+  }
+
+  let baseCounts = getRemainingCounts();
+
+  let bust = 0;
+  let c17 = 0, c18 = 0, c19 = 0, c20 = 0, c21 = 0;
+
+  for (let i = 0; i < iter; i++) {
+    let counts = cloneCounts(baseCounts);
+    let hand = [];
+
+    // includi carte già note del dealer
+    s.d.forEach(card => {
+      hand.push(card);
+      if (counts[card] > 0) counts[card]--;
+    });
+
+    // se vedi solo l'upcard, devi pescare la seconda
+    if (hand.length === 1) {
+      let second = drawRandomCard(counts);
+      hand.push(second);
+    }
+
+    let soft;
+
+    while (true) {
+      let total = getSum(hand);
+      soft = isSoftHand(hand);
+
+      if (total > 21) {
+        bust++;
+        break;
+      }
+
+      // S17: il banco sta su qualsiasi 17, anche soft
+      if (total >= 17) {
+        if (total === 17) c17++;
+        else if (total === 18) c18++;
+        else if (total === 19) c19++;
+        else if (total === 20) c20++;
+        else if (total === 21) c21++;
+        break;
+      }
+
+      // deve pescare
+      let card = drawRandomCard(counts);
+      hand.push(card);
+    }
+  }
+
+  let totalIter = iter;
+  let bustProb = (bust / totalIter) * 100;
+  let p17 = (c17 / totalIter) * 100;
+  let p18 = (c18 / totalIter) * 100;
+  let p19 = (c19 / totalIter) * 100;
+  let p20 = (c20 / totalIter) * 100;
+  let p21 = (c21 / totalIter) * 100;
+
+  let result = {
+    bustProb,
+    p17, p18, p19, p20, p21
+  };
+
+  s.dealerSim = result;
+  return result;
+}
+
+function updateDealerPredictor() {
+  let dv = s.d[0] || 0;
+  let main = document.getElementById('dealer-bust-main');
+  let detail = document.getElementById('dealer-bust-detail');
+
+  if (!dv) {
+    main.innerText = "Bust: --%";
+    detail.innerHTML = `
+      <span>17: --%</span>
+      <span>18: --%</span>
+      <span>19: --%</span>
+      <span>20: --%</span>
+      <span>21: --%</span>
+    `;
+    s.dealerSim = null;
+    return;
+  }
+
+  let sim = simulateDealer(220);
+  if (!sim) return;
+
+  main.innerText = "Bust: " + sim.bustProb.toFixed(1) + "%";
+  detail.innerHTML = `
+    <span>17: ${sim.p17.toFixed(1)}%</span>
+    <span>18: ${sim.p18.toFixed(1)}%</span>
+    <span>19: ${sim.p19.toFixed(1)}%</span>
+    <span>20: ${sim.p20.toFixed(1)}%</span>
+    <span>21: ${sim.p21.toFixed(1)}%</span>
+  `;
+}
+
+function updateBustItIndicator() {
+  let info = document.getElementById('bust-info');
+  let btn = document.getElementById('btn-side');
+
+  let sim = s.dealerSim;
+  if (!sim) {
+    info.innerText = "";
+    btn.classList.remove('bust-strong');
+    return;
+  }
+
+  // bust medio approx 24.5%
+  let baseBust = 24.5;
+  let diff = sim.bustProb - baseBust;
+
+  info.innerText = "Bust It: " + (diff >= 0 ? "+" : "") + diff.toFixed(1) + "% vs media";
+
+  // Dinamica colore: TC già gestito via classe active
+  let effectiveCards = s.decks * 52;
+  let tc = s.rc / Math.max(1, (effectiveCards - s.dealt) / 52);
+
+  btn.classList.remove('bust-strong');
+
+  if (tc < 5) {
+    // già handled da update su className, qui solo extra glow OFF
+  } else if (tc >= 5 && tc < 7) {
+    // livello intermedio: lascia active come da logica originale
+  } else if (tc >= 7) {
+    // livello forte
+    btn.classList.add('bust-strong');
+  }
+}
+
+function updateInsuranceInfo() {
+  let info = document.getElementById('ins-info');
+  let dv = s.d[0] || 0;
+  let effectiveCards = s.decks * 52;
+  let tc = s.rc / Math.max(1, (effectiveCards - s.dealt) / 52);
+
+  if (dv !== 11) {
+    info.innerText = "";
+    return;
+  }
+
+  if (tc >= 5) {
+    info.innerText = "Insurance: forte (TC " + tc.toFixed(1) + ")";
+  } else if (tc >= 3) {
+    info.innerText = "Insurance: borderline (TC " + tc.toFixed(1) + ")";
+  } else {
+    info.innerText = "Insurance: sfavorevole (TC " + tc.toFixed(1) + ")";
+  }
+}
+
+function updateAdvancedStats() {
+  let bustSpan = document.getElementById('adv-bust-rate');
+  let tcWinSpan = document.getElementById('adv-tc-win');
+  let tcLoseSpan = document.getElementById('adv-tc-lose');
+
+  if (!s.hist || s.hist.length === 0) {
+    bustSpan.innerText = "--%";
+    tcWinSpan.innerText = "--";
+    tcLoseSpan.innerText = "--";
+    return;
+  }
+
+  let recent = s.hist.slice(0, 20);
+  let bustCount = 0;
+  let totalRecent = recent.length;
+
+  let sumTcWin = 0, countWin = 0;
+  let sumTcLose = 0, countLose = 0;
+
+  recent.forEach(h => {
+    if (h.dealerBust) bustCount++;
+    if (h.win && typeof h.tc === 'number') {
+      sumTcWin += h.tc;
+      countWin++;
+    }
+    if (h.lose && typeof h.tc === 'number') {
+      sumTcLose += h.tc;
+      countLose++;
+    }
+  });
+
+  let bustRate = totalRecent > 0 ? (bustCount / totalRecent) * 100 : 0;
+  bustSpan.innerText = bustRate.toFixed(1) + "%";
+
+  tcWinSpan.innerText = countWin > 0 ? (sumTcWin / countWin).toFixed(2) : "--";
+  tcLoseSpan.innerText = countLose > 0 ? (sumTcLose / countLose).toFixed(2) : "--";
+}
+
 window.onload = () => {
   load();
   lucide.createIcons();
 };
 </script>
+
 </body>
 </html>
