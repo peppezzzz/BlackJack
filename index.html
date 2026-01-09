@@ -1011,6 +1011,202 @@
       tcWinSpan.innerText = countWin ? (sumTcWin / countWin).toFixed(2) : "--";
       tcLoseSpan.innerText = countLose ? (sumTcLose / countLose).toFixed(2) : "--";
     }
+// ---------------------------------------------------------
+// SIMULAZIONE REALISTICA CON PENETRAZIONE E SESSIONE CONTINUA
+// ---------------------------------------------------------
+
+function simulate(n) {
+    console.log("Simulazione avviata per", n, "mani...");
+
+    for (let i = 0; i < n; i++) {
+
+        // Se raggiungiamo la penetrazione → reshuffle realistico
+        let maxCards = s.decks * 52;
+        let penetrationLimit = maxCards * (s.pen / 100);
+
+        if (s.dealt >= penetrationLimit) {
+            // Reshuffle realistico
+            s.rc = 0;
+            s.dealt = 0;
+            s.c10 = 0;
+            s.cA = 0;
+            s.log = [];
+            s.d = [];
+            s.p1 = [];
+            s.p2 = [];
+            s.o = [];
+            s.isSplit = false;
+            s.acesSplit = false;
+            s.dealerSim = null;
+        }
+
+        // --- GENERA UNA MANO COMPLETA ---
+
+        // Pesca due carte giocatore
+        s.p1 = [ drawRandomCard(getRemainingCounts()), drawRandomCard(getRemainingCounts()) ];
+        s.log.push({ v: s.p1[0], t: 'p1' });
+        s.log.push({ v: s.p1[1], t: 'p1' });
+        s.rc += TAGS[s.p1[0]] + TAGS[s.p1[1]];
+        s.dealt += 2;
+        if (s.p1[0] === 10) s.c10++;
+        if (s.p1[1] === 10) s.c10++;
+        if (s.p1[0] === 11) s.cA++;
+        if (s.p1[1] === 11) s.cA++;
+
+        // Pesca upcard dealer
+        s.d = [ drawRandomCard(getRemainingCounts()) ];
+        s.log.push({ v: s.d[0], t: 'd' });
+        s.rc += TAGS[s.d[0]];
+        s.dealt++;
+        if (s.d[0] === 10) s.c10++;
+        if (s.d[0] === 11) s.cA++;
+
+        // --- GIOCA LA MANO DEL GIOCATORE (strategia base NDAS S17) ---
+        let playing = true;
+        while (playing) {
+            let ps = getSum(s.p1);
+            let dv = s.d[0];
+
+            if (ps >= 17) break;
+            if (ps <= 11) {
+                // CHIAMA
+                let c = drawRandomCard(getRemainingCounts());
+                s.p1.push(c);
+                s.log.push({ v: c, t: 'p1' });
+                s.rc += TAGS[c];
+                s.dealt++;
+                if (c === 10) s.c10++;
+                if (c === 11) s.cA++;
+                if (getSum(s.p1) > 21) playing = false;
+                continue;
+            }
+
+            // Hard 12
+            if (ps === 12) {
+                if (dv === 2 || dv === 3 || dv >= 7) {
+                    let c = drawRandomCard(getRemainingCounts());
+                    s.p1.push(c);
+                    s.log.push({ v: c, t: 'p1' });
+                    s.rc += TAGS[c];
+                    s.dealt++;
+                    if (c === 10) s.c10++;
+                    if (c === 11) s.cA++;
+                }
+                break;
+            }
+
+            // Hard 13–16
+            if (ps >= 13 && ps <= 16) {
+                if (dv >= 7) {
+                    let c = drawRandomCard(getRemainingCounts());
+                    s.p1.push(c);
+                    s.log.push({ v: c, t: 'p1' });
+                    s.rc += TAGS[c];
+                    s.dealt++;
+                    if (c === 10) s.c10++;
+                    if (c === 11) s.cA++;
+                }
+                break;
+            }
+
+            break;
+        }
+
+        // --- GIOCA IL DEALER (simulazione realistica) ---
+        let sim = simulateDealer();
+        let dealerFinal = null;
+
+        // Estrai un risultato casuale dalla distribuzione simulata
+        let r = Math.random() * 100;
+        let acc = 0;
+
+        if (r < sim.bustProb) {
+            dealerFinal = 22; // bust
+        } else {
+            acc += sim.p17;
+            if (r < acc) dealerFinal = 17;
+            else {
+                acc += sim.p18;
+                if (r < acc) dealerFinal = 18;
+                else {
+                    acc += sim.p19;
+                    if (r < acc) dealerFinal = 19;
+                    else {
+                        acc += sim.p20;
+                        if (r < acc) dealerFinal = 20;
+                        else dealerFinal = 21;
+                    }
+                }
+            }
+        }
+
+        // --- RISOLVI LA MANO ---
+        let ps = getSum(s.p1);
+        let ds = dealerFinal;
+        let tc = s.rc / Math.max(1, ((s.decks * 52) - s.dealt) / 52);
+        let bet = (tc < 1) ? 1 : (tc < 2) ? 2 : (tc < 3) ? 5 : (tc < 4.5) ? 8 : 12;
+
+        let res = "";
+        let gain = 0;
+
+        s.stats.h++;
+
+        if (ps > 21) {
+            res = "SBALLATO";
+            gain = -bet;
+            s.stats.l++;
+            s.stats.b++;
+        }
+        else if (ds > 21) {
+            res = "BANCO SBALLA";
+            gain = bet;
+            s.stats.w++;
+        }
+        else if (ps > ds) {
+            res = "VINTO";
+            gain = bet;
+            s.stats.w++;
+        }
+        else if (ps < ds) {
+            res = "PERSO";
+            gain = -bet;
+            s.stats.l++;
+        }
+        else {
+            res = "PAREGGIO";
+            gain = 0;
+            s.stats.p++;
+        }
+
+        s.bank += gain;
+
+        // Aggiorna storico (solo le ultime 200 per non appesantire)
+        s.hist.unshift({
+            m: res,
+            v: gain.toFixed(1) + "€",
+            c: gain > 0 ? "var(--win)" : gain < 0 ? "var(--lose)" : "#888",
+            dealerBust: ds > 21,
+            tc: tc,
+            win: gain > 0,
+            lose: gain < 0,
+            playerSum: ps,
+            dealerSum: ds,
+            playerBJ: false,
+            dealerBJ: false
+        });
+
+        if (s.hist.length > 200) s.hist.pop();
+
+        // Pulisci la mano per la prossima iterazione
+        s.p1 = [];
+        s.d = [];
+        s.log = [];
+    }
+
+    // Aggiorna UI solo alla fine
+    update();
+    console.log("Simulazione completata.");
+}
 
     window.onload = () => {
       load();
@@ -1019,3 +1215,4 @@
   </script>
 </body>
 </html>
+
