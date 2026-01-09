@@ -5,25 +5,120 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BJ Counter</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
   <style>
-    body { background: #111; color: #fff; font-family: Arial; margin: 0; padding: 0; }
-    .container { max-width: 360px; margin: auto; padding: 10px; }
-    .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-    button { background: #333; color: #fff; border: none; padding: 20px; font-size: 20px; border-radius: 5px; cursor: pointer; }
-    .count { font-size: 30px; text-align: center; }
-    .suggestion { color: #ff0; text-align: center; }
-    .finances { background: #222; padding: 10px; margin-top: 10px; }
-    .history { max-height: 200px; overflow-y: scroll; background: #222; padding: 10px; }
-    .split { display: flex; justify-content: space-around; }
-    .hand { flex: 1; text-align: center; border: 1px solid #444; margin: 5px; padding: 5px; }
-    .settings { background: #222; padding: 10px; margin-top: 10px; }
-    input { background: #333; color: #fff; border: 1px solid #444; padding: 5px; }
-    .post-hand { color: #aaa; text-align: center; margin-top: 10px; }
-    /* Stealth mode: make it look like a calculator */
-    .stealth .count, .stealth .suggestion, .stealth .finances, .stealth .history, .stealth .settings { display: none; }
-    .stealth .buttons button:not(.calc-btn) { display: none; }
+    body { 
+      background: #121212; 
+      color: #e0e0e0; 
+      font-family: 'Roboto', sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh;
+    }
+    .container { 
+      max-width: 400px; 
+      width: 100%; 
+      padding: 20px; 
+      background: #1e1e1e; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .count { 
+      font-size: 28px; 
+      text-align: center; 
+      margin-bottom: 10px; 
+      color: #4caf50;
+    }
+    .suggestion { 
+      color: #ffeb3b; 
+      text-align: center; 
+      font-weight: bold; 
+      margin-bottom: 15px;
+    }
+    .hands { 
+      background: #252525; 
+      padding: 10px; 
+      border-radius: 8px; 
+      margin-bottom: 15px;
+    }
+    .hand { 
+      margin: 5px 0; 
+      font-size: 16px;
+    }
+    .buttons { 
+      display: grid; 
+      grid-template-columns: repeat(4, 1fr); 
+      gap: 10px; 
+      margin-bottom: 15px;
+    }
+    button { 
+      background: linear-gradient(135deg, #333, #444); 
+      color: #fff; 
+      border: none; 
+      padding: 15px; 
+      font-size: 18px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      transition: transform 0.1s, background 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    button:hover { 
+      transform: scale(1.05); 
+      background: linear-gradient(135deg, #444, #555);
+    }
+    button.action { 
+      background: linear-gradient(135deg, #4caf50, #388e3c); 
+    }
+    button.reset { 
+      background: linear-gradient(135deg, #f44336, #d32f2f); 
+    }
+    .post-hand { 
+      color: #9e9e9e; 
+      text-align: center; 
+      margin: 10px 0;
+    }
+    .finances { 
+      background: #252525; 
+      padding: 15px; 
+      border-radius: 8px; 
+      margin-bottom: 15px; 
+      font-size: 14px;
+    }
+    .history { 
+      max-height: 150px; 
+      overflow-y: auto; 
+      background: #252525; 
+      padding: 10px; 
+      border-radius: 8px; 
+      margin-bottom: 15px; 
+      font-size: 12px;
+    }
+    .settings { 
+      background: #252525; 
+      padding: 15px; 
+      border-radius: 8px; 
+      font-size: 14px;
+    }
+    input, select { 
+      background: #333; 
+      color: #fff; 
+      border: 1px solid #444; 
+      padding: 8px; 
+      border-radius: 4px; 
+      margin: 5px 0;
+    }
+    label { 
+      display: block; 
+      margin-bottom: 5px;
+    }
+    /* Stealth mode */
+    .stealth .count, .stealth .suggestion, .stealth .hands, .stealth .post-hand, .stealth .finances, .stealth .history, .stealth .settings { display: none; }
     .stealth .buttons { grid-template-columns: repeat(4, 1fr); }
-    .calc-btn { /* Style for calc buttons */ }
+    .stealth button:not(.calc-btn) { display: none; }
+    .stealth .container { box-shadow: none; background: transparent; }
   </style>
 </head>
 <body>
@@ -31,8 +126,8 @@
     <div class="count">Running: 0 | True: 0</div>
     <div class="suggestion">Suggerimento: -</div>
     <div class="hands">
-      <div id="playerHand">Player: </div>
-      <div id="dealerHand">Dealer: </div>
+      <div class="hand" id="playerHand">Player: </div>
+      <div class="hand" id="dealerHand">Dealer: </div>
       <div class="split" id="splitHands"></div>
     </div>
     <div class="buttons">
@@ -49,12 +144,12 @@
       <button class="calc-btn" onclick="addCard('Q')">Q</button>
       <button class="calc-btn" onclick="addCard('K')">K</button>
       <button class="calc-btn" onclick="addCard('A')">A</button>
-      <button onclick="toMe()">A me</button>
-      <button onclick="toDealer()">Al dealer</button>
-      <button onclick="splitHand()">Split</button>
-      <button onclick="endHand()">Fine Mano</button>
-      <button onclick="resetHand()">Reset Mano</button>
-      <button onclick="resetShoe()">Reset Shoe</button>
+      <button class="action" onclick="toMe()">A me</button>
+      <button class="action" onclick="toDealer()">Al dealer</button>
+      <button class="action" onclick="splitHand()">Split</button>
+      <button class="action" onclick="endHand()">Fine Mano</button>
+      <button class="reset" onclick="resetHand()">Reset Mano</button>
+      <button class="reset" onclick="resetShoe()">Reset Shoe</button>
       <button onclick="toggleStealth()">Stealth</button>
       <button onclick="exportHistory()">Export CSV</button>
     </div>
@@ -72,11 +167,12 @@
       <label>Bet Size: <input id="betSize" type="number" value="10"></label>
       <label>Sistema: <select id="system"><option>Hi-Lo</option><option>KO</option></select></label>
       <label>Side Bets: <input type="checkbox" id="bustIt"> Bust It</label>
-      <button onclick="saveSettings()">Salva</button>
+      <button class="action" onclick="saveSettings()">Salva</button>
     </div>
   </div>
   <script>
-    // Variabili globali
+    // Il codice JS rimane lo stesso del precedente, con tutte le funzioni
+    // Copia e incolla il <script> dal codice precedente qui
     const cardValues = { '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, 'J':10, 'Q':10, 'K':10, 'A':11 };
     let runningCount = 0;
     let cardsDealt = 0;
@@ -94,7 +190,7 @@
     let history = [];
     let handPlayer = [];
     let handDealer = [];
-    let splitHands = []; // Array di array per mani splittate (fino a 2)
+    let splitHands = []; 
     let isSplit = false;
     let inputCount = 0;
     let assignTo = 'player';
@@ -103,7 +199,6 @@
     let bustItActive = false;
     let stealthMode = false;
 
-    // Carica dati da localStorage
     function loadData() {
       if (localStorage.runningCount) runningCount = parseInt(localStorage.runningCount);
       if (localStorage.cardsDealt) cardsDealt = parseInt(localStorage.cardsDealt);
@@ -125,12 +220,11 @@
     }
     loadData();
 
-    // Salva impostazioni
     function saveSettings() {
       decks = parseInt(document.getElementById('decks').value);
       penetration = parseFloat(document.getElementById('penetration').value) / 100;
       bankroll = parseFloat(document.getElementById('initBankroll').value);
-      saldo = bankroll; // Reset saldo se cambi bankroll
+      saldo = bankroll; 
       betSize = parseFloat(document.getElementById('betSize').value);
       countSystem = document.getElementById('system').value;
       bustItActive = document.getElementById('bustIt').checked;
@@ -144,10 +238,8 @@
       updateAll();
     }
 
-    // Aggiungi carta
     function addCard(card) {
       if (postHandMode) {
-        // Solo aggiorna count, non assegna a mani
         runningCount += getCountValue(card);
         cardsDealt++;
         vibrateIfHigh();
@@ -157,7 +249,7 @@
       if (inputCount < 3) {
         if (inputCount === 0 || inputCount === 2) {
           if (isSplit) {
-            splitHands[inputCount / 2].push(card); // Per split, ma iniziale no
+            splitHands[inputCount / 2].push(card); 
           } else {
             handPlayer.push(card);
           }
@@ -168,7 +260,6 @@
       } else {
         if (assignTo === 'player') {
           if (isSplit) {
-            // Assegna a mano attiva split, assume prima mano per semplicità; aggiungi selector se multi
             splitHands[0].push(card);
           } else {
             handPlayer.push(card);
@@ -201,20 +292,18 @@
     function toMe() { assignTo = 'player'; }
     function toDealer() { assignTo = 'dealer'; }
 
-    // Split hand
     function splitHand() {
       if (handPlayer.length === 2 && handPlayer[0] === handPlayer[1]) {
         splitHands = [[handPlayer[0]], [handPlayer[1]]];
         isSplit = true;
-        handPlayer = []; // Clear main
+        handPlayer = [];
         updateHandsDisplay();
         updateSuggestion();
       }
     }
 
-    // Fine mano
     function endHand() {
-      if (postHandMode) return; // Already ended
+      if (postHandMode) return;
       let nets = [];
       let hands = isSplit ? splitHands : [handPlayer];
       hands.forEach(h => {
@@ -222,7 +311,7 @@
         let dealerVal = calculateHand(handDealer);
         let outcome = 'Perso';
         let net = -betSize;
-        if (h.length >= 6 && playerVal <= 21) { // Six Card Charlie
+        if (h.length >= 6 && playerVal <= 21) { 
           outcome = 'Vinto (Charlie)';
           net = betSize;
         } else if (playerVal > 21) {
@@ -242,18 +331,16 @@
           outcome = 'Perso';
           net = -betSize;
         }
-        // Blackjack payout
         if (playerVal === 21 && h.length === 2) net = betSize * 1.5;
-        // Bust It side
         if (bustItActive && dealerVal > 21 && handDealer.length >= 3) {
           let payout = 0;
-          if (handDealer.length === 3) payout = 8; // Example payouts
+          if (handDealer.length === 3) payout = 8;
           else if (handDealer.length === 4) payout = 10;
           else if (handDealer.length === 5) payout = 50;
           else if (handDealer.length === 6) payout = 100;
           else if (handDealer.length === 7) payout = 200;
           else if (handDealer.length >= 8) payout = 250;
-          net += betSize * payout; // Assume side bet = betSize
+          net += betSize * payout;
           outcome += ` (Bust It: ${payout}:1)`;
         }
         nets.push(net);
@@ -272,7 +359,6 @@
       updateHistory();
     }
 
-    // Reset mano
     function resetHand() {
       handPlayer = [];
       handDealer = [];
@@ -286,7 +372,6 @@
       updateSuggestion();
     }
 
-    // Reset shoe
     function resetShoe() {
       runningCount = 0;
       cardsDealt = 0;
@@ -294,7 +379,6 @@
       updateCount();
     }
 
-    // Update count
     function updateCount() {
       let decksLeft = Math.max(1, decks * (1 - cardsDealt / (decks * 52 * penetration)));
       let trueCount = runningCount / decksLeft;
@@ -303,7 +387,6 @@
       localStorage.cardsDealt = cardsDealt;
     }
 
-    // Update suggestion
     function updateSuggestion() {
       let dealerUp = handDealer[0] ? cardValues[handDealer[0]] : 0;
       let tc = getTrueCount();
@@ -315,35 +398,28 @@
       }
     }
 
-    // Get true count
     function getTrueCount() {
       let decksLeft = Math.max(1, decks * (1 - cardsDealt / (decks * 52 * penetration)));
       return runningCount / decksLeft;
     }
 
-    // Basic strategy + deviations (semplificata, espandi con tabelle complete)
     function getAction(hand, dealerUp, tc) {
       let val = calculateHand(hand);
       let isSoft = hand.includes('A') && val <= 21;
       let isPair = hand.length === 2 && hand[0] === hand[1];
-      // Basic strategy examples
       if (isPair) {
         let pairVal = cardValues[hand[0]];
-        if (pairVal === 11) return 'P'; // Always split A
-        if (pairVal === 8) return 'P'; // Always split 8
-        // Etc.
+        if (pairVal === 11) return 'P'; 
+        if (pairVal === 8) return 'P'; 
       }
       if (val <= 11) return 'H';
       if (val >= 17) return 'S';
       if (val === 12 && dealerUp >= 4 && dealerUp <= 6) return 'S';
-      // Deviations (Illustrious 18 examples for Hi-Lo)
-      if (tc >= 3 && dealerUp === 11 && val === 11) return 'D'; // Double 11 vs A at TC>=3
-      if (tc >= 0 && val === 16 && dealerUp === 10) return 'S'; // Stand 16 vs 10 at TC>=0
-      // Aggiungi più index qui per completezza
-      return 'H'; // Default
+      if (tc >= 3 && dealerUp === 11 && val === 11) return 'D'; 
+      if (tc >= 0 && val === 16 && dealerUp === 10) return 'S'; 
+      return 'H'; 
     }
 
-    // Calculate hand value
     function calculateHand(hand) {
       let val = 0;
       let aces = 0;
@@ -359,7 +435,6 @@
       return val;
     }
 
-    // Update hands display
     function updateHandsDisplay() {
       document.getElementById('playerHand').innerText = `Player: ${handPlayer.join(', ')} (${calculateHand(handPlayer)})`;
       document.getElementById('dealerHand').innerText = `Dealer: ${handDealer.join(', ')} (${calculateHand(handDealer)})`;
@@ -375,7 +450,6 @@
       }
     }
 
-    // Update finances
     function updateFinances() {
       document.getElementById('bankroll').innerText = bankroll;
       document.getElementById('saldo').innerText = saldo;
@@ -397,12 +471,10 @@
       localStorage.history = JSON.stringify(history);
     }
 
-    // Update history
     function updateHistory() {
       document.getElementById('history').innerHTML = history.map(h => `<p>${h}</p>`).join('');
     }
 
-    // Export history as CSV
     function exportHistory() {
       let csv = 'Mano,Outcome,Net\n' + history.join('\n');
       let blob = new Blob([csv], { type: 'text/csv' });
@@ -413,19 +485,16 @@
       a.click();
     }
 
-    // Toggle stealth mode
     function toggleStealth() {
       stealthMode = !stealthMode;
       document.body.classList.toggle('stealth', stealthMode);
     }
 
-    // Vibrate if high TC
     function vibrateIfHigh() {
       let tc = getTrueCount();
       if (tc > 2 && 'vibrate' in navigator) navigator.vibrate(200);
     }
 
-    // Update all
     function updateAll() {
       updateCount();
       updateHandsDisplay();
