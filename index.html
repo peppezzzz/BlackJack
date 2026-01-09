@@ -524,15 +524,20 @@ function resolve() {
     s.bank += gain;
 
     // Estensione innocua di hist con info per statistiche avanzate
-    s.hist.unshift({
-      m: (s.isSplit ? (idx === 0 ? 'A: ' : 'B: ') : '') + res,
-      v: gain.toFixed(1) + "€",
-      c: col,
-      dealerBust: dealerBust,
-      tc: tc,
-      win: gain > 0,
-      lose: gain < 0
-    });
+s.hist.unshift({
+  m: (s.isSplit ? (idx === 0 ? 'A: ' : 'B: ') : '') + res,
+  v: gain.toFixed(1) + "€",
+  c: col,
+  dealerBust: dealerBust,
+  tc: tc,
+  win: gain > 0,
+  lose: gain < 0,
+  playerSum: ps,
+  dealerSum: ds,
+  playerBJ: (ps === 21 && h.length === 2 && !s.isSplit),
+  dealerBJ: dealerBJ
+});
+
 
     document.getElementById('strat-box').innerText = res;
     document.getElementById('strat-box').style.color = col;
@@ -666,10 +671,34 @@ function update() {
   document.getElementById('f-prof').style.color = prof >= 0 ? 'var(--win)' : 'var(--lose)';
   document.getElementById('f-roi').innerText = ((prof / s.start) * 100).toFixed(1) + "%";
 
-  document.getElementById('history-list').innerHTML =
-    s.hist.slice(0, 10).map(i =>
-      `<div class="f-row"><span>${i.m}</span><span style="color:${i.c}">${i.v}</span></div>`
-    ).join('');
+document.getElementById('history-list').innerHTML =
+  s.hist.slice(0, 10).map(i => {
+    let detail = "";
+
+    // Risultato numerico
+    if (i.playerSum !== undefined && i.dealerSum !== undefined) {
+      let ps = i.playerSum;
+      let ds = i.dealerSum;
+
+      let psText = ps > 21 ? ps + " (bust)" : ps;
+      let dsText = ds > 21 ? ds + " (bust)" : ds;
+
+      // Blackjack
+      if (i.playerBJ) psText = "21 (BJ)";
+      if (i.dealerBJ) dsText = "21 (BJ)";
+
+      detail = `<div style="font-size:10px; color:#888;">${psText} a ${dsText}</div>`;
+    }
+
+    return `
+      <div class="f-row">
+        <span>${i.m}</span>
+        <span style="color:${i.c}">${i.v}</span>
+      </div>
+      ${detail}
+    `;
+  }).join('');
+;
 
   // Side Bets Highlights (Insurance solo se Asso + TC >= 3)
   document.getElementById('btn-ins').className =
@@ -823,12 +852,15 @@ function drawRandomCard(counts) {
 }
 
 // simulazione dealer S17
-function simulateDealer(iter = 200) {
+function simulateDealer() {
   let dv = s.d[0] || 0;
   if (!dv) {
     s.dealerSim = null;
     return null;
   }
+
+  // Iterazioni dinamiche
+  let iter = (dv >= 2 && dv <= 6) ? 300 : 180;
 
   let baseCounts = getRemainingCounts();
 
@@ -839,11 +871,52 @@ function simulateDealer(iter = 200) {
     let counts = cloneCounts(baseCounts);
     let hand = [];
 
-    // includi carte già note del dealer
+    // Carte note del dealer
     s.d.forEach(card => {
       hand.push(card);
       if (counts[card] > 0) counts[card]--;
     });
+
+    // Se manca la seconda carta
+    if (hand.length === 1) {
+      let second = drawRandomCard(counts);
+      hand.push(second);
+    }
+
+    while (true) {
+      let total = getSum(hand);
+
+      if (total > 21) {
+        bust++;
+        break;
+      }
+
+      if (total >= 17) {
+        if (total === 17) c17++;
+        else if (total === 18) c18++;
+        else if (total === 19) c19++;
+        else if (total === 20) c20++;
+        else if (total === 21) c21++;
+        break;
+      }
+
+      hand.push(drawRandomCard(counts));
+    }
+  }
+
+  let result = {
+    bustProb: (bust / iter) * 100,
+    p17: (c17 / iter) * 100,
+    p18: (c18 / iter) * 100,
+    p19: (c19 / iter) * 100,
+    p20: (c20 / iter) * 100,
+    p21: (c21 / iter) * 100
+  };
+
+  s.dealerSim = result;
+  return result;
+}
+
 
     // se vedi solo l'upcard, devi pescare la seconda
     if (hand.length === 1) {
@@ -930,12 +1003,33 @@ function updateBustItIndicator() {
   let info = document.getElementById('bust-info');
   let btn = document.getElementById('btn-side');
 
+  // Calcolo TC
+  let effectiveCards = s.decks * 52;
+  let tc = s.rc / Math.max(1, (effectiveCards - s.dealt) / 52);
+
+  // Se esiste una simulazione dealer → usa quella
   let sim = s.dealerSim;
-  if (!sim) {
-    info.innerText = "";
-    btn.classList.remove('bust-strong');
-    return;
-  }
+
+  let baseBust = 24.5;
+  let diff = sim ? (sim.bustProb - baseBust) : null;
+
+  // Testo percentuale
+  let percText = sim
+    ? "Bust It: " + (diff >= 0 ? "+" : "") + diff.toFixed(1) + "% vs media"
+    : "Bust It: --%";
+
+  // Indicatore testuale basato SOLO sul TC
+  let state = "";
+  if (tc < 5) state = "sfavorevole";
+  else if (tc < 7) state = "migliorata";
+  else state = "quasi favorevole";
+
+  info.innerHTML = percText + "<br>" + state;
+
+  // Colore pulsante (manteniamo la tua logica originale)
+  btn.className = (tc >= 5) ? "side-btn active" : "side-btn";
+}
+
 
   // bust medio approx 24.5%
   let baseBust = 24.5;
@@ -1025,3 +1119,4 @@ window.onload = () => {
 
 </body>
 </html>
+
